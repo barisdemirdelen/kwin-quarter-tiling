@@ -89,7 +89,9 @@ function readIgnoredActs() {
 }
 
 // Virtual desktops that will be ignored by the script
-var ignoredDesktops = readConfig('ignoredDesktops', '').toString().split(', ');
+var ignoredDesktops = readConfig('ignoredDesktops', '').
+    toString().
+    split(', ');
 if (ignoredDesktops != '') {
   for (var i = 0; i < ignoredDesktops.length; i++) {
     var desk = parseInt(ignoredDesktops[i]); // Transfers the entries to integers
@@ -146,17 +148,14 @@ if (gap == 0) {
   fixMargins();
 }
 
-// Avoids issues with ifMaxed() if gaps are set to zero
-function fixMargins() {
-  for (var i = 0; i < margins.length; i++) {
-    if (margins[i] > 0) {
-      return;
-    }
-  }
-  margins[2] = 1; // Bottom is used because it's the least noticable and needed
-}
-
 var centerTo = readConfig('centerTo', 1); // 0 == Screen, 1 == Tile
+
+if (instantInit()) {
+  print('instantInit()');
+  init();
+} else {
+  ws.clientAdded.connect(wait);
+}
 
 // Starts the script
 function init() {
@@ -180,6 +179,16 @@ function init() {
   }
   addClients();
   connectWorkspace();
+}
+
+// Avoids issues with ifMaxed() if gaps are set to zero
+function fixMargins() {
+  for (var i = 0; i < margins.length; i++) {
+    if (margins[i] > 0) {
+      return;
+    }
+  }
+  margins[2] = 1; // Bottom is used because it's the least noticable and needed
 }
 
 /*
@@ -1343,7 +1352,8 @@ function resetClient(client, pos, scr) {
     case 3:
       // Current size & random position
       rect = client.geometry;
-      rect.x = Math.floor((Math.random() * (tile.width - rect.width)) + tile.x);
+      rect.x = Math.floor((Math.random() * (tile.width - rect.width)) +
+          tile.x);
       rect.y = Math.floor((Math.random() * (tile.height - rect.height)) +
           tile.y);
       break;
@@ -1471,7 +1481,8 @@ function findClientIndex(client, desk, scr) {
   var act = client.act;
   for (var i = 0; i < tiles[act][desk][scr].length; i++) {
     if (sameClient(tiles[act][desk][scr][i], client)) {
-      print('END: findClientIndex(' + client + ', ' + desk + ', ' + scr + ')');
+      print('END: findClientIndex(' + client + ', ' + desk + ', ' + scr +
+          ')');
       return i;
     }
   }
@@ -1491,15 +1502,12 @@ function oppositeClient(client, scr) {
     case 0:
       if (length === 4) { return [tiles[act][desk][scr][3], 3]; }
       else { return false; }
-      break;
     case 1:
       if (length >= 3) { return [tiles[act][desk][scr][2], 2]; }
       else { return false; }
-      break;
     case 2:
       if (length >= 2) { return [tiles[act][desk][scr][1], 1]; }
       else { return false; }
-      break;
     case 3:
       return [tiles[act][desk][scr][0], 0];
   }
@@ -1710,13 +1718,6 @@ function screenHeight(scr) {
 // ----
 // Init
 // ----
-
-if (instantInit()) {
-  print('instantInit()');
-  init();
-} else {
-  ws.clientAdded.connect(wait);
-}
 
 function instantInit() {
   var clients = ws.clientList();
