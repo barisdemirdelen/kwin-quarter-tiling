@@ -1203,8 +1203,7 @@ function throwClient(client, fDesk, fScr, tDesk, tScr) {
         // If client is maxed/fullscreened, adjust block status and geometry
         tiles[act][fDesk][fScr].blocked = false;
         tiles[act][tDesk][tScr].blocked = true;
-        var area = screenGeo(tScr);
-        client.geometry = area;
+        client.geometry = screenGeo(tScr);
       }
     } else {
       if (client.included) {
@@ -1457,21 +1456,13 @@ function checkClient(client, desk, scr) {
 
 function isMaxed(client) {
   var area = ws.clientArea(0, client.screen, 0);
-  if (client.geometry.height >= area.height &&
-      client.geometry.width >= area.width) {
-    return true;
-  } else {
-    return false;
-  }
+  return client.geometry.height >= area.height &&
+      client.geometry.width >= area.width;
 }
 
 // Compare two clients without unnecessary type conversion (see issue #1)
 function sameClient(client1, client2) {
-  if (client1.frameId === client2.frameId) {
-    return true;
-  } else {
-    return false;
-  }
+  return client1.frameId === client2.frameId;
 }
 
 // Finds tiles[desktop][ws.activeScreen] index of a client
@@ -1526,13 +1517,11 @@ function neighbourClient(client, scr) {
     case 0:
       if (length >= 2) { return [tiles[act][desk][scr][1], 1]; }
       else { return false; }
-      break;
     case 1:
       return [tiles[act][desk][scr][0], 0];
     case 2:
       if (length === 4) { return [tiles[act][desk][scr][3], 3]; }
       else { return [tiles[act][desk][scr][0], 0]; }
-      break;
     case 3:
       if (length >= 3) { return [tiles[act][desk][scr][2], 2]; }
       else { return false; }
