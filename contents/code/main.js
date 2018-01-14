@@ -70,24 +70,6 @@ if (readConfig('ignoredCaptions', '') != '') {
 // Activities that will be ignored by the script
 var ignoredActivities = [];
 
-function readIgnoredActs() {
-  ignoredActivities = readConfig('ignoredActivities', '').
-      toString().
-      split(', ');
-  if (ignoredActivities != '') {
-    for (var i = 0; i < ignoredActivities.length; i++) {
-      var act = parseInt(ignoredActivities[i]); // Transfers the entries to integers
-      if (isNaN(act)) {
-        ignoredActivities.splice(i, 0); // Removes entries that aren't integers
-      } else if (ws.activities.length > act - 1) {
-        ignoredActivities[i] = ws.activities[act - 1].toString();
-      }
-    }
-  } else {
-    ignoredActivities = [];
-  }
-}
-
 // Virtual desktops that will be ignored by the script
 var ignoredDesktops = readConfig('ignoredDesktops', '').
     toString().
@@ -189,6 +171,24 @@ function fixMargins() {
     }
   }
   margins[2] = 1; // Bottom is used because it's the least noticable and needed
+}
+
+function readIgnoredActs() {
+  ignoredActivities = readConfig('ignoredActivities', '').
+      toString().
+      split(', ');
+  if (ignoredActivities != '') {
+    for (var i = 0; i < ignoredActivities.length; i++) {
+      var act = parseInt(ignoredActivities[i]); // Transfers the entries to integers
+      if (isNaN(act)) {
+        ignoredActivities.splice(i, 0); // Removes entries that aren't integers
+      } else if (ws.activities.length > act - 1) {
+        ignoredActivities[i] = ws.activities[act - 1].toString();
+      }
+    }
+  } else {
+    ignoredActivities = [];
+  }
 }
 
 /*
