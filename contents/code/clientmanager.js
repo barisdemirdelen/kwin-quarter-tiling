@@ -3,16 +3,19 @@
  * @class
  */
 function ClientManager(tilingManager) {
+
+    // Hack to let the inner connections call this
     var self = this;
 
     this.clientAdded = function(client) {
-        var view = tilingManager.views[client.desktop][client.screen];
+        print("ClientManager.clientAdded");
+        var screenManager = tilingManager.screenManagers[client.desktop][client.screen];
     
-        if (view.clients.length > 3) {
+        if (screenManager.clients.length > screenManager.layout.max - 1) {
             return;
         }
     
-        client.index = view.clients.length;
+        client.index = screenManager.clients.length;
         client.startGeo = client.geometry;
         client.oldGeo = client.geometry;
     
@@ -20,13 +23,14 @@ function ClientManager(tilingManager) {
         client.clientStepUserMovedResized.connect(self.stepMove);
         client.clientFinishUserMovedResized.connect(self.finishMove);
     
-        view.clients.push(client);
+        screenManager.clients.push(client);
     
         tilingManager.tile();
     };
     
     this.clientRemoved = function(client) {
-        var view = tilingManager.views[client.desktop][client.screen];
+        print("ClientManager.clientRemoved");
+        var screenManager = tilingManager.screenManagers[client.desktop][client.screen];
     
         client.index = null;
         client.startGeo = null;
@@ -36,16 +40,17 @@ function ClientManager(tilingManager) {
         client.clientStepUserMovedResized.disconnect(self.stepMove);
         client.clientFinishUserMovedResized.disconnect(self.finishMove);
     
-        view.clients.splice(view.cIndex(client), 1);
+        screenManager.clients.splice(screenManager.clientIndex(client), 1);
     
         tilingManager.tile();
     };
     
     this.startMove = function(client) {
-        var view = tilingManager.views[client.desktop][client.screen];
+        print("ClientManager.startMove");
+        var screenManager = tilingManager.screenManagers[client.desktop][client.screen];
     
         client.startGeo = client.geometry;
-        client.index = view.cIndex(client);
+        client.index = screenManager.clientIndex(client);
     };
     
     this.stepMove = function(client) {
@@ -53,10 +58,10 @@ function ClientManager(tilingManager) {
     };
     
     this.finishMove = function(client) {
-        var view = tilingManager.views[client.desktop][client.screen];
+        print("ClientManager.finishMove");
+        var screenManager = tilingManager.screenManagers[client.desktop][client.screen];
     
-        view.pane.x += (client.index === 0 || client.index === 3) ? client.geometry.width - client.startGeo.width : client.startGeo.width - client.geometry.width;
-        view.pane.y += (client.index === 0 || client.index === 1) ? client.geometry.height - client.startGeo.height : client.startGeo.height - client.geometry.height;
+        screenManager.layout.finishMove(client);
     
         tilingManager.tile();
     };

@@ -3,25 +3,23 @@
  * @class
  */
 function TilingManager() {
-
-    this.views = [];
+    print ("new TilingManager");
+    this.screenManagers = [];
     for (var desk = 1; desk <= workspace.desktops; desk++) {
-        this.views[desk] = [];
+        this.screenManagers[desk] = [];
         for (var scr = 0; scr < workspace.numScreens; scr++) {
-            this.views[desk][scr] = new ScreenManager(scr);
+            this.screenManagers[desk][scr] = new ScreenManager(scr);
         }
     }
 
     this.gaps = 8;
 
     this.tile = function () {
-        var view = this.views[workspace.currentDesktop];
-        for (var scr = 0; scr < view.length; scr++) {
-            view = this.views[workspace.currentDesktop][scr];
-            view.tile();
-            for (var c = 0; c < view.clients.length; c++) {
-                view.clients[c].geometry = view.tiles[c];
-            }
+        print("TilingManager.tile");
+        var screenManager = this.screenManagers[workspace.currentDesktop];
+        for (var scr = 0; scr < screenManager.length; scr++) {
+            screenManager = this.screenManagers[workspace.currentDesktop][scr];
+            screenManager.tile();
         }
     };
 
