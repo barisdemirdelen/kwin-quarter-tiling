@@ -16,7 +16,7 @@ function ClientManager(tilingManager) {
         print("ClientManager.added");
         var screenManager = tilingManager.screenManagers[client.desktop][client.screen];
     
-        if (screenManager.clients.length > screenManager.layout.max - 1 || !self.eligible(client)) {
+        if (!self.eligible(client) || screenManager.clients.length > screenManager.layout.max - 1) {
             return;
         }
     
@@ -42,6 +42,10 @@ function ClientManager(tilingManager) {
     this.removed = function(client) {
         print("ClientManager.removed");
         var screenManager = tilingManager.screenManagers[client.desktop][client.screen];
+
+        if (screenManager.clientIndex(client) === -1) {
+            return;
+        }
     
         client.index = null;
         client.startGeo = null;
@@ -101,24 +105,9 @@ function ClientManager(tilingManager) {
      *  Whether the client is eligible for tiling
      */
     this.eligible = function(client) {
-        if (client.comboBox ||
-            client.desktopWindow ||
-            client.dndIcon ||
-            client.dock ||
-            client.dropdownMenu ||
-            client.menu ||
-            client.notification ||
-            client.popupMenu ||
-            client.specialWindow ||
-            client.splash ||
-            client.toolbar ||
-            client.tooltip ||
-            client.utility ||
-            client.transient ||
-            client.geometry === workspace.clientArea(0, client.screen, 0)) {
-            return false;
-        }
-        return true;
+        return (client.comboBox || client.desktopWindow || client.dialog || client.dndIcon || client.dock || client.dropdownMenu ||
+                client.menu || client.notification || client.popupMenu || client.specialWindow || client.splash || client.toolbar || 
+                client.tooltip || client.utility || client.transient) ? false : true;
     };
 
     workspace.clientAdded.connect(this.added);
