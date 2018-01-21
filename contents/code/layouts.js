@@ -1,6 +1,7 @@
 function getLayout(layoutId, geo) {
+    var layouts = [ "2x2", "1x2", "1x3" ]
     var ori = (geo.width > geo.height) ? "h" : "v";
-    switch(layoutId + ori) {
+    switch(layouts[layoutId] + ori) {
         case "2x2h":
             return new Horizontal_2x2(geo);
         case "2x2v":
@@ -28,7 +29,13 @@ function Horizontal_2x2(geo) {
         this.tiles.push({});
     }
 
-    this.adjustTiles = function(c) {
+
+    /**
+     * Adjusts the tiles to pane changes and the amount of clients on the screen
+     * @param {int} count
+     *  Screen's client count
+     */
+    this.adjustTiles = function(count) {
         for (var t = 0; t < this.tiles.length; t++) {
             this.tiles[t].x = (t === 0 || t === 3) ? this.geo.x : this.geo.x + this.pane.x;
             this.tiles[t].y = (t === 0 || t === 1) ? this.geo.y : this.geo.y + this.pane.y;
@@ -37,9 +44,9 @@ function Horizontal_2x2(geo) {
         }
 
         // Fill missing
-        this.tiles[0].width += (c === 1) ? this.geo.width - this.pane.x : 0;
-        this.tiles[0].height += (c !== 4) ? this.geo.height - this.pane.y : 0;
-        this.tiles[1].height += (c === 2) ? this.geo.height - this.pane.y : 0;
+        this.tiles[0].width += (count === 1) ? this.geo.width - this.pane.x : 0;
+        this.tiles[0].height += (count !== 4) ? this.geo.height - this.pane.y : 0;
+        this.tiles[1].height += (count === 2) ? this.geo.height - this.pane.y : 0;
     };
 
     this.finishMove = function(client) {

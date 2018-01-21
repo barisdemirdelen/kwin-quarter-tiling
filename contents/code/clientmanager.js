@@ -1,17 +1,22 @@
 /**
- * Manages client-related signals and functions
+ * Contains all client-related signals and functions
  * @class
  */
 function ClientManager(tilingManager) {
-
+    print("new ClientManager")
+    
     // Hack to let the inner connections call this
     var self = this;
 
-    this.clientAdded = function(client) {
-        print("ClientManager.clientAdded");
+    /**
+     * Adds a client to a ScreenManager and initiates new attributes necessary for the script
+     * @param {KWin.client} client
+     */
+    this.added = function(client) {
+        print("ClientManager.added");
         var screenManager = tilingManager.screenManagers[client.desktop][client.screen];
     
-        if (screenManager.clients.length > screenManager.layout.max - 1) {
+        if (screenManager.clients.length > screenManager.layout.max - 1 || !self.eligible(client)) {
             return;
         }
     
@@ -20,16 +25,22 @@ function ClientManager(tilingManager) {
         client.oldGeo = client.geometry;
     
         client.clientStartUserMovedResized.connect(self.startMove);
-        client.clientStepUserMovedResized.connect(self.stepMove);
         client.clientFinishUserMovedResized.connect(self.finishMove);
+        if (readConfig("live", false).toString() === "true") {
+            client.clientStepUserMovedResized.connect(self.stepMove);
+        }
     
         screenManager.clients.push(client);
     
         tilingManager.tile();
     };
     
-    this.clientRemoved = function(client) {
-        print("ClientManager.clientRemoved");
+    /**
+     * Removes a client from the ScreenManager and nullifies the attributes given by this.added
+     * @param {KWin.client} client
+     */
+    this.removed = function(client) {
+        print("ClientManager.removed");
         var screenManager = tilingManager.screenManagers[client.desktop][client.screen];
     
         client.index = null;
@@ -37,14 +48,20 @@ function ClientManager(tilingManager) {
         client.oldGeo = null;
     
         client.clientStartUserMovedResized.disconnect(self.startMove);
-        client.clientStepUserMovedResized.disconnect(self.stepMove);
         client.clientFinishUserMovedResized.disconnect(self.finishMove);
+        if (readConfig("live", false).toString() === "true") {
+            client.clientStepUserMovedResized.disconnect(self.stepMove);
+        }
     
         screenManager.clients.splice(screenManager.clientIndex(client), 1);
     
         tilingManager.tile();
     };
     
+    /**
+     * Stores pre-movement position of a client and checks the client's index in a ScreenManager
+     * @param {KWin.client} client
+     */
     this.startMove = function(client) {
         print("ClientManager.startMove");
         var screenManager = tilingManager.screenManagers[client.desktop][client.screen];
@@ -53,21 +70,58 @@ function ClientManager(tilingManager) {
         client.index = screenManager.clientIndex(client);
     };
     
+    /**
+     * @param {KWin.client} client
+     */
     this.stepMove = function(client) {
-    
+        var screenManager = tilingManager.screenManagers[client.desktop][client.screen];
+        screenManager.layout.finishMove(client);
+        tilingManager.tile();
+        client.startGeo = client.geometry;
+        client.index = screenManager.clientIndex(client);
     };
     
+    /**
+     * Calls for the ScreenManager's layout to adjust the tiles according to the movement
+     * @param {KWin.client} client
+     */
     this.finishMove = function(client) {
         print("ClientManager.finishMove");
         var screenManager = tilingManager.screenManagers[client.desktop][client.screen];
-    
+
         screenManager.layout.finishMove(client);
-    
+
         tilingManager.tile();
     };
 
+    /**
+     * Checks if the client is eligible for tiling or not
+     * @param {KWin.client} client
+     * @return
+     *  Whether the client is eligible for tiling
+     */
+    this.eligible = function(client) {
+        if (client.comboBox ||
+            client.desktopWindow ||
+            client.dndIcon ||
+            client.dock ||
+            client.dropdownMenu ||
+            client.menu ||
+            client.notification ||
+            client.popupMenu ||
+            client.specialWindow ||
+            client.splash ||
+            client.toolbar ||
+            client.tooltip ||
+            client.utility ||
+            client.transient ||
+            client.geometry === workspace.clientArea(0, client.screen, 0)) {
+            return false;
+        }
+        return true;
+    };
 
-    workspace.clientAdded.connect(this.clientAdded);
-    workspace.clientRemoved.connect(this.clientRemoved);
+    workspace.clientAdded.connect(this.added);
+    workspace.clientRemoved.connect(this.removed);
 
 }
