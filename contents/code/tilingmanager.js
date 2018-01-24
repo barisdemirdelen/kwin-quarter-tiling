@@ -4,7 +4,7 @@
  * @class
  */
 function TilingManager() {
-    print ("new TilingManager");
+    print("new TilingManager");
 
     this.screenManagers = [];
     for (var desk = 1; desk <= workspace.desktops; desk++) {
@@ -13,9 +13,7 @@ function TilingManager() {
             this.screenManagers[desk][scr] = new ScreenManager(scr);
         }
     }
-
-    this.gaps = readConfig("gaps", 8);
-
+    
     /**
      * Tiles every screen on the current desktop
      */
