@@ -30,25 +30,26 @@ function ScreenManager(scr) {
 
         for (var i = 0; i < this.clients.length; i++) {
 
-            if (i !== this.clientIndex(client)) {
+            if (i !== client.index) {
                 geo = this.clients[i].geometry;
             } else {
                 geo = client.startGeo;
             }
 
             centers[i] = ({
-                x: geo.x - geo.width / 2,
-                y: geo.y - geo.height / 2
+                x: geo.x + geo.width / 2,
+                y: geo.y + geo.height / 2
             });
 
         }
 
         geo = client.geometry;
-        geo.x -= geo.width / 2,
-        geo.y -= geo.height / 2
+        geo.x += geo.width / 2;
+        geo.y += geo.height / 2;
 
-        var closestClient = centers[this.clientIndex(client)];
+        var closestClient = centers[client.index];
         var closestDist = 99999;
+
         for (var i = 0; i < centers.length; i++) {
             var dist = Math.abs(geo.x - centers[i].x) + Math.abs(geo.y - centers[i].y);
             if (dist < closestDist) {
@@ -79,10 +80,13 @@ function ScreenManager(scr) {
      *  Clients to be swapped
      */
     this.swapClients = function (client1, client2) {
-        var i1 = this.clientIndex(client1);
-        var i2 = this.clientIndex(client2);
-        this.clients[i1] = client2;
-        this.clients[i2] = client1;
+        var tempClient = client1;
+
+        this.clients[client1.index] = client2
+        this.clients[client2.index] = tempClient;
+
+        client1.index = this.clientIndex(client1);
+        client2.index = this.clientIndex(client2);
     };
 
     /**
@@ -94,7 +98,8 @@ function ScreenManager(scr) {
      */
     this.clientIndex = function (client) {
         for (var i = 0; i < this.clients.length; i++) {
-            if (client.windowId === this.clients[i].windowId) {
+            if (client.windowId === this.clients[i].windowId ||
+                client.frameId === this.clients[i].frameId) {
                 return i;
             }
         }
