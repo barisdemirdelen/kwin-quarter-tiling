@@ -1,8 +1,4 @@
-/**
- * Contains all client-related signals and functions
- * @class
- */
-function ClientManager(tilingManager) {
+function ClientManager(parent) {
     print("new ClientManager")
 
     // Hack to let the inner connections call this
@@ -14,26 +10,17 @@ function ClientManager(tilingManager) {
         "plasmashell"
     ];
 
-    /**
-     * Adds a client to a ScreenManager and initiates new attributes necessary for the script
-     * @param {KWin.client} client
-     */
+    // Store original geometries here, so clients can be reset
+    this.originalGeos = [];
+    
+    // Called whenever a new client is added
     this.added = function (client) {
         print("ClientManager.added");
-        var screenManager = tilingManager.screenManagers[client.desktop][client.screen];
+        if (!self.eligible(client)) return;
+        var screenManager = parent.screenManagers[client.desktop][client.screen];
 
-        if (!self.eligible(client) || screenManager.clients.length > screenManager.layout.max - 1) {
-            return;
-        }
-
-        // Keeping a separate (from KWin) track of these will make things easier 
-        client.tiledDesk = client.desktop;
-        client.tiledScr = client.screen;
-        client.index = screenManager.clients.length;
-        // Used to store pre-movement geometry
+        self.originalGeos[client.windowId] = client.geometry;
         client.startGeo = client.geometry;
-        // Used to store the original geometry (used when a client is floated)
-        client.oldGeo = client.geometry;
 
         // Necessary signal connections
         client.clientStartUserMovedResized.connect(self.startMove);
@@ -44,20 +31,17 @@ function ClientManager(tilingManager) {
 
         screenManager.clients.push(client);
 
-        tilingManager.tile();
+        parent.tile();
     };
 
-    /**
-     * Removes a client from the ScreenManager and nullifies the attributes given by this.added
-     * @param {KWin.client} client
-     */
+    // Called whenever a new client is removed
     this.removed = function (client) {
         print("ClientManager.removed");
-        var screenManager = tilingManager.screenManagers[client.tiledDesk][client.tiledScr];
+        var screenManager = parent.findScreenManager(client);
+        if (screenManager === null) return;
 
-        if (screenManager.clientIndex(client) === -1) {
-            return;
-        }
+        client.geometry = self.originalGeos[client.windowId];
+        client.startGeo = null;
 
         // Necessary signal disconnections
         client.clientStartUserMovedResized.disconnect(self.startMove);
@@ -68,29 +52,17 @@ function ClientManager(tilingManager) {
 
         // Roll the indexes down
         for (var i = 0; i < screenManager.clients.length; i++) {
-            if (screenManager.clients[i].index > client.index) {
+            if (screenManager.clients[i].index > screenManager.clientIndex(client)) {
                 screenManager.clients[i].index -= 1;
             }
         }
 
-        screenManager.clients.splice(client.index, 1);
+        screenManager.clients.splice(screenManager.clientIndex(client), 1);
 
-        // Nullify these last as they might be used during the removal
-        client.tiledScr = null;
-        client.tiledDesk = null;
-        client.index = null;
-        client.startGeo = null;
-        client.oldGeo = null;
-
-        tilingManager.tile();
+        parent.tile();
     };
 
-    /**
-     * Checks if the client is eligible for tiling or not
-     * @param {KWin.client} client
-     * @return
-     *  Whether the client is eligible for tiling
-     */
+    // Checks whether a tile is to be tiled or not
     this.eligible = function (client) {
         return (client.comboBox || client.desktopWindow || client.dialog || client.dndIcon || client.dock || client.dropdownMenu ||
             client.menu || client.notification || client.popupMenu || client.specialWindow || client.splash || client.toolbar ||
@@ -98,64 +70,53 @@ function ClientManager(tilingManager) {
             this.ignoredClients.indexOf(client.resourceName.toString()) > -1) ? false : true;
     };
 
-    /**
-     * Stores pre-movement position of a client and checks the client's index in a ScreenManager
-     * @param {KWin.client} client
-     */
+    // Called when a movement event is initiated
     this.startMove = function (client) {
         print("ClientManager.startMove");
-        var screenManager = tilingManager.screenManagers[client.tiledDesk][client.tiledScr];
+        var screenManager = parent.findScreenManager(client)
 
         client.startGeo = client.geometry;
     };
 
-    /** Similar to finishMove, but called every step of the event
-     * @param {KWin.client} client
-     */
+    // Called each step of the movement event
     this.stepMove = function (client) {
         // print("ClientManager.stepMove")
-        var screenManager = tilingManager.screenManagers[client.tiledDesk][client.tiledScr];
+        var screenManager = parent.findScreenManager(client)
 
-        screenManager.layout.finishMove(client);
-        tilingManager.tile();
+        screenManager.layout.finishMove(client, screenManager.clientIndex(client));
+        parent.tile();
         
         client.startGeo = client.geometry;
     };
-
-    /**
-     * Calls for the ScreenManager's layout to adjust the tiles according to the movement
-     * @param {KWin.client} client
-     */
+    
+    // Called when a movement event is finished
     this.finishMove = function (client) {
         print("ClientManager.finishMove");
-        var screenManager = tilingManager.screenManagers[client.tiledDesk][client.tiledScr];
+        var screenManager = parent.findScreenManager(client)
 
         if (client.geometry.width === client.startGeo.width && client.geometry.height === client.startGeo.height) {
-            screenManager.finishMove(client)
+            if (client.screen === parent.screenManagers[client.desktop].indexOf(screenManager)) {
+                screenManager.finishMove(client)
+            } else {
+                self.removed(client);
+            }
         } else {
-            screenManager.layout.finishMove(client);
+            screenManager.layout.finishMove(client, screenManager.clientIndex(client));
         }
 
-        tilingManager.tile();
+        parent.tile();
     };
 
-    this.currentDesktopChanged = function(desktop, client) {
-        print("ClientManager.currentDesktopChanged");
-        // TODO
+    // Called whenever the desktop presence changes
+    this.desktopPresenceChanged = function (client, desktop) {
+        print("ClientManager.desktopPresenceChanged")
+        self.removed(client);
     };
 
-    this.desktopPresenceChanged = function(client, desktop) {
-        print("ClientManager.desktopPresenceChanged");
-        // TODO
-    };
 
-    if (readConfig("auto", false).toString() === "true") {
-        workspace.clientAdded.connect(this.added);
-    }
+    // Necessary workspace signals
 
+    if (readConfig("auto", true).toString() === "true") workspace.clientAdded.connect(this.added);
     workspace.clientRemoved.connect(this.removed);
-
-    workspace.currentDesktopChanged.connect(this.currentDesktopChanged);
     workspace.desktopPresenceChanged.connect(this.desktopPresenceChanged);
-
 }

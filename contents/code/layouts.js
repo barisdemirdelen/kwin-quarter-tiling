@@ -1,10 +1,3 @@
-/**
- * Returns a new layout for the given screen
- * @param {string} layoutId
- *  Layout identifier
- * @param {geo}
- *  Geometry of the target screen
- */
 function getLayout(layoutId, geo) {
     var layouts = ["2x2", "1x2", "1x3"]
     var ori = (geo.width > geo.height) ? "h" : "v";
@@ -16,10 +9,6 @@ function getLayout(layoutId, geo) {
     }
 }
 
-/**
- * Manages tiles
- * @class
- */
 function Horizontal_2x2(geo) {
     print("new Horizontal_2x2");
 
@@ -38,12 +27,6 @@ function Horizontal_2x2(geo) {
         this.tiles.push({});
     }
 
-
-    /**
-     * Adjusts the tiles to pane changes and the amount of clients on the screen
-     * @param {int} count
-     *  Screen's client count
-     */
     this.adjustTiles = function (count) {
         for (var t = 0; t < this.tiles.length; t++) {
             this.tiles[t].x = (t === 0 || t === 3) ? this.geo.x + this.gaps : this.geo.x + this.pane.x + this.gaps;
@@ -58,9 +41,9 @@ function Horizontal_2x2(geo) {
         this.tiles[1].height += (count === 2) ? this.geo.height - this.pane.y - this.gaps : 0;
     };
 
-    this.finishMove = function (client) {
-        this.pane.x += (client.index === 0 || client.index === 3) ? client.geometry.width - client.startGeo.width : client.startGeo.width - client.geometry.width;
-        this.pane.y += (client.index === 0 || client.index === 1) ? client.geometry.height - client.startGeo.height : client.startGeo.height - client.geometry.height;
+    this.finishMove = function (client, i) {
+        this.pane.x += (i === 0 || i === 3) ? client.geometry.width - client.startGeo.width : client.startGeo.width - client.geometry.width;
+        this.pane.y += (i === 0 || i === 1) ? client.geometry.height - client.startGeo.height : client.startGeo.height - client.geometry.height;
     }
 
 }
@@ -88,12 +71,6 @@ function Vertical_2x2(geo) {
         this.tiles.push({});
     }
 
-
-    /**
-     * Adjusts the tiles to pane changes and the amount of clients on the screen
-     * @param {int} count
-     *  Screen's client count
-     */
     this.adjustTiles = function (count) {
         for (var t = 0; t < this.tiles.length; t++) {
             this.tiles[t].x = (t === 0 || t === 3) ? this.geo.x + this.gaps : this.geo.x + this.pane.x + this.gaps;
@@ -108,9 +85,9 @@ function Vertical_2x2(geo) {
         this.tiles[1].height += (count === 2) ? this.geo.height - this.pane.y - this.gaps : 0;
     };
 
-    this.finishMove = function (client) {
-        this.pane.x += (client.index === 0 || client.index === 3) ? client.geometry.width - client.startGeo.width : client.startGeo.width - client.geometry.width;
-        this.pane.y += (client.index === 0 || client.index === 1) ? client.geometry.height - client.startGeo.height : client.startGeo.height - client.geometry.height;
+    this.finishMove = function (client, i) {
+        this.pane.x += (i === 0 || i === 3) ? client.geometry.width - client.startGeo.width : client.startGeo.width - client.geometry.width;
+        this.pane.y += (i === 0 || i === 1) ? client.geometry.height - client.startGeo.height : client.startGeo.height - client.geometry.height;
     }
 
 }
