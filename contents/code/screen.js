@@ -2,6 +2,8 @@ function Screen(id) {
 
     var self = this;
 
+    this.id = id;
+
     this.geometry = workspace.clientArea(0, id, 0)
 
     this.clients = [];

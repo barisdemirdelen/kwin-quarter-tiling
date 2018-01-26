@@ -47,7 +47,8 @@ function Activity() {
                 client.dndIcon || client.dock || client.dropdownMenu ||
                 client.menu || client.notification || client.popupMenu || 
                 client.specialWindow || client.splash || client.toolbar ||
-                client.tooltip || client.utility || client.transient || 
+                client.tooltip || client.utility || client.transient ||
+                client.activities[0].toString() != this.id ||
                 this.ignored.indexOf(client.resourceClass.toString()) > -1 ||
                 this.ignored.indexOf(client.resourceName.toString()) > -1) ? 
                 false : true;
@@ -56,34 +57,47 @@ function Activity() {
     // Stores original geometries so clients can be restored
     this.original = [];
 
-    workspace.clientAdded.connect(function(client) {
+    this.add = function(client) { 
         if (!self.eligible(client)) return;
-
         self.original[client.windowId] = client.geometry;
 
+        client.clientFinishUserMovedResized.connect(self.move);
+
         var screen = self.desktops[client.desktop].screens[client.screen];
-
         screen.clients.push(client);
-
         screen.tile();
+    };
+
+    this.remove = function(client) {
+        client.geometry = self.original[client.windowId];
+
+        client.clientFinishUserMovedResized.disconnect(self.move);
+
+        var screen = self.find(client);
+        screen[0].clients.splice(screen[1], 1);
+        screen[0].tile();
+    };
+
+    this.move = function(client) {
+        var screen = self.find(client);
+        screen[0].layout.move(client, screen[1]);
+        screen[0].tile(screen[0].clients.length);
+    };
+
+    workspace.clientAdded.connect(function(client) {
+        self.add(client);
     });
 
     workspace.clientRemoved.connect(function(client) {
-        client.geometry = self.original[client.windowId];
-
-        var screen = self.find(client);
-
-        screen[0].clients.splice(screen[1], 1);
-    
-        screen[0].tile();
+        self.remove(client);
     });
 
     workspace.desktopPresenceChanged.connect(function(client, desktop) {
-        var screen = self.find(client);
+        self.remove(client);
+    });
 
-        screen[0].clients.splice(screen[1], 1);
-    
-        screen[0].tile();
+    workspace.activitiesChanged.connect(function(client) {
+        self.remove(client);
     });
 
 }

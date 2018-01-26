@@ -35,5 +35,10 @@ function QuarterLayout(geometry) {
         this.tiles[0].width += (count === 1) ? this.geometry.width - this.pane.x - this.gaps : 0;
         this.tiles[0].height += (count !== 4) ? this.geometry.height - this.pane.y - this.gaps : 0;
         this.tiles[1].height += (count === 2) ? this.geometry.height - this.pane.y - this.gaps : 0;
-    }
+    };
+
+    this.move = function(client, index) {
+        this.pane.x += (i === 0 || i === 3) ? client.geometry.width - this.tiles[index].width : this.tiles[index].width - client.geometry.width;
+        this.pane.y += (i === 0 || i === 1) ? client.geometry.height - this.tiles[index].height : this.tiles[index].height - client.geometry.height;
+    };
 }
