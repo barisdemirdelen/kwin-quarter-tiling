@@ -38,7 +38,7 @@ function QuarterLayout(geometry) {
     };
 
     this.move = function(client, index) {
-        this.pane.x += (i === 0 || i === 3) ? client.geometry.width - this.tiles[index].width : this.tiles[index].width - client.geometry.width;
-        this.pane.y += (i === 0 || i === 1) ? client.geometry.height - this.tiles[index].height : this.tiles[index].height - client.geometry.height;
+        this.pane.x += (index === 0 || index === 3) ? client.geometry.width - this.tiles[index].width : this.tiles[index].width - client.geometry.width;
+        this.pane.y += (index === 0 || index === 1) ? client.geometry.height - this.tiles[index].height : this.tiles[index].height - client.geometry.height;
     };
 }

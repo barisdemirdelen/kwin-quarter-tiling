@@ -34,7 +34,7 @@ function Activity() {
             for (var j = 0; j < this.desktops[i].screens.length; j++) {
                 for (var l = 0; l < this.desktops[i].screens[j].clients.length; l++) {
                     if (this.desktops[i].screens[j].clients[l].windowId === client.windowId || this.desktops[i].screens[j].frameId === client.frameId) {
-                        return [this.desktops[i].screens[j], l];
+                        return { screen: this.desktops[i].screens[j], index: l };
                     }
                 }
             }
@@ -73,15 +73,28 @@ function Activity() {
 
         client.clientFinishUserMovedResized.disconnect(self.move);
 
-        var screen = self.find(client);
-        screen[0].clients.splice(screen[1], 1);
-        screen[0].tile();
+        var p = self.find(client);
+        p.screen.clients.splice(p.index, 1);
+        p.screen.tile();
     };
 
     this.move = function(client) {
-        var screen = self.find(client);
-        screen[0].layout.move(client, screen[1]);
-        screen[0].tile(screen[0].clients.length);
+        var p = self.find(client);
+
+        if (client.geometry.width === p.screen.layout.tiles[p.index].width &&
+            client.geometry.height === p.screen.layout.tiles[p.index].height) {
+
+                if (client.screen !== p.screen.id) {
+                    self.remove(client)
+                }
+                else {
+                    p.screen.move(client, p.index)
+                }
+
+        }
+
+        p.screen.layout.move(client, p.index);
+        p.screen.tile(p.screen.clients.length);
     };
 
     workspace.clientAdded.connect(function(client) {
