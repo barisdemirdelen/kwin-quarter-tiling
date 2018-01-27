@@ -59,17 +59,17 @@ function QuarterLayout(geometry, max) {
 
         // Baby-proofing
 
-        if (this.pane.x < this.geometry.x + 80)
-            this.pane.x = this.geometry.x + 80;
+        if (this.pane.x < 80)
+            this.pane.x = 80;
     
-        if (this.pane.x > this.geometry.x + this.geometry.width - 80)
-            this.pane.x = this.geometry.x + this.geometry.width - 80;
+        if (this.pane.x > this.geometry.width - 80)
+            this.pane.x = this.geometry.width - 80;
 
-        if (this.pane.y < this.geometry.y + 80)
-            this.pane.y = this.geometry.y + 80;
+        if (this.pane.y < 80)
+            this.pane.y = 80;
     
-        if (this.pane.y > this.geometry.y + this.geometry.height - 80)
-            this.pane.y = this.geometry.y + this.geometry.height - 80;
+        if (this.pane.y > this.geometry.height - 80)
+            this.pane.y = this.geometry.height - 80;
     };
 }
 
@@ -147,17 +147,17 @@ function MasterLayout(geometry, max) {
         
         // Baby-proofing
 
-        if (this.pane.x < this.geometry.x + 80)
-            this.pane.x = this.geometry.x + 80;
+        if (this.pane.x < 80)
+            this.pane.x = 80;
         
-        if (this.pane.x > this.geometry.x + this.geometry.width - 80)
-            this.pane.x = this.geometry.x + this.geometry.width - 80;
+        if (this.pane.x > this.geometry.width - 80)
+            this.pane.x = this.geometry.width - 80;
 
-        if (this.pane.yt < this.geometry.y + 80)
-            this.pane.yt = this.geometry.y + 80;
+        if (this.pane.yt < 80)
+            this.pane.yt = 80;
         
-        if (this.pane.yb > this.geometry.y + this.geometry.height - 80)
-            this.pane.yb = this.geometry.y + this.geometry.height - 80;
+        if (this.pane.yb > this.geometry.height - 80)
+            this.pane.yb = this.geometry.height - 80;
 
         if (this.pane.yb < this.pane.yt) {
             this.pane.yt = this.geometry.height / 3;
