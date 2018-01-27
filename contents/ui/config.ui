@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>224</width>
-    <height>210</height>
+    <width>312</width>
+    <height>228</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -94,16 +94,6 @@
              </property>
             </spacer>
            </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_5">
-           <property name="topMargin">
-            <number>6</number>
-           </property>
-           <property name="bottomMargin">
-            <number>6</number>
-           </property>
            <item>
             <widget class="QLabel" name="layoutLabel">
              <property name="toolTip">
@@ -136,19 +126,16 @@
              </item>
             </widget>
            </item>
-           <item>
-            <spacer name="horizontalSpacer_2">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_5">
+           <property name="topMargin">
+            <number>6</number>
+           </property>
+           <property name="bottomMargin">
+            <number>6</number>
+           </property>
           </layout>
          </item>
          <item>
@@ -162,9 +149,22 @@
            <item>
             <widget class="QCheckBox" name="kcfg_auto">
              <property name="text">
-              <string>Auto</string>
+              <string>Automatic Tiling</string>
              </property>
             </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_4">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
            </item>
            <item>
             <widget class="QCheckBox" name="kcfg_live">
@@ -172,7 +172,7 @@
               <string>If checked, tiling happens in real-time (note: way slower)</string>
              </property>
              <property name="text">
-              <string>Live</string>
+              <string>Real-time tiling</string>
              </property>
              <property name="checked">
               <bool>false</bool>
@@ -194,7 +194,38 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_5">
        <item>
-        <layout class="QVBoxLayout" name="advTabRootLayout"/>
+        <layout class="QVBoxLayout" name="advTabRootLayout">
+         <item>
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Master Clients</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="lineEdit_2"/>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>Ignored Clients</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="lineEdit"/>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_3">
+           <property name="text">
+            <string>Ignored Captions</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="lineEdit_3"/>
+         </item>
+        </layout>
        </item>
       </layout>
      </widget>

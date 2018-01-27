@@ -54,7 +54,8 @@ function Activity() {
                 client.tooltip || client.utility || client.transient ||
                 client.activities[0].toString() !== this.id ||
                 this.ignored.indexOf(client.resourceClass.toString()) > -1 ||
-                this.ignored.indexOf(client.resourceName.toString()) > -1) ? 
+                this.ignored.indexOf(client.resourceName.toString()) > -1 ||
+                this.desktops[client.desktop].screens[client.screen].clients.length > this.desktops[client.desktop].screens[client.screen].layout.max - 1 ) ? 
                 false : true;
     };
 
@@ -124,14 +125,19 @@ function Activity() {
         p.screen.clients.splice(p.index, 1);
         p.screen.tile();
 
-        var screen = self.desktops[client.desktop].screens[client.screen];
-        screen.clients.push(client);
-        screen.tile();
+        if (self.eligible(client)) {
+            var screen = self.desktops[client.desktop].screens[client.screen];
+            screen.clients.push(client);
+            screen.tile();
+        }
+        
     };
 
-    workspace.clientAdded.connect(function(client) {
-        self.add(client);
-    });
+    if (KWin.readConfig("auto", false).toString() === "true") {
+        workspace.clientAdded.connect(function(client) {
+            self.add(client);
+        });
+    }
 
     workspace.clientRemoved.connect(function(client) {
         self.remove(client);

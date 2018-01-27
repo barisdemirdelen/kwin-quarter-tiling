@@ -7,7 +7,7 @@ function Screen(id) {
     this.geometry = workspace.clientArea(0, id, 0)
 
     this.clients = [];
-    this.layout = new Layout(0, this.geometry);
+    this.layout = new Layout(KWin.readConfig("layout", 0), this.geometry);
 
 
     this.tile = function() {
