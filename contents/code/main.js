@@ -52,7 +52,7 @@ function Activity() {
                 client.menu || client.notification || client.popupMenu || 
                 client.specialWindow || client.splash || client.toolbar ||
                 client.tooltip || client.utility || client.transient ||
-                client.activities[0].toString() != this.id ||
+                client.activities[0].toString() !== this.id ||
                 this.ignored.indexOf(client.resourceClass.toString()) > -1 ||
                 this.ignored.indexOf(client.resourceName.toString()) > -1) ? 
                 false : true;
@@ -83,6 +83,7 @@ function Activity() {
 
     this.reset = function(client) {
         var original = this.original[client.windowId];
+
         client.geometry.width = original.width;
         client.geometry.height = original.height;
     };
@@ -105,7 +106,7 @@ function Activity() {
 
         if (client.geometry.width === p.screen.layout.tiles[p.index].width && client.geometry.height === p.screen.layout.tiles[p.index].height) {
             if (client.screen !== p.screen.id) {
-                self.remove(client)
+                self.relocate(client)
             }
             else {
                 p.screen.move(client, p.index)
@@ -116,6 +117,16 @@ function Activity() {
         }
 
         p.screen.tile(p.screen.clients.length);
+    };
+
+    this.relocate = function(client) {
+        var p = self.find(client);
+        p.screen.clients.splice(p.index, 1);
+        p.screen.tile();
+
+        var screen = self.desktops[client.desktop].screens[client.screen];
+        screen.clients.push(client);
+        screen.tile();
     };
 
     workspace.clientAdded.connect(function(client) {
