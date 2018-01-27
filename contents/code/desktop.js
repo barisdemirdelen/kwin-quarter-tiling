@@ -13,6 +13,6 @@ function Desktop(id) {
         for (var i = 0; i < this.screens.length; i++) {
             this.screens[i].tile();
         }
-    }
+    };
 
 }

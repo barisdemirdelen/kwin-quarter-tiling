@@ -18,7 +18,7 @@ function Screen(id) {
             this.clients[i].geometry.width = this.layout.tiles[i].width;
             this.clients[i].geometry.height = this.layout.tiles[i].height;
         }
-    }
+    };
 
     this.move = function(client, index) {
         var geometry;
@@ -57,14 +57,14 @@ function Screen(id) {
             this.swap(index, centers.indexOf(closest))
         }
 
-    }
+    };
 
     this.swap = function(i, j) {
         var temp = this.clients[i];
 
         this.clients[i] = this.clients[j];
         this.clients[j] = temp;
-    }
+    };
 
 
 }

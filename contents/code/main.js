@@ -22,11 +22,13 @@ function Activity() {
         this.desktops[i] = new Desktop(i);
     }
 
+    this.original = [];
+
     this.tile = function() {
         for (var i = 1; i <= this.desktops.length; i++) {
             this.desktops[i].tile();
         }
-    }
+    };
 
     // Hire me?
     this.find = function(client) {
@@ -39,7 +41,9 @@ function Activity() {
                 }
             }
         }
-    }
+
+        return { screen: -1, index: -1};
+    };
 
     // Checks whether a client is eligible for tiling or not
     this.eligible = function (client) {
@@ -54,12 +58,9 @@ function Activity() {
                 false : true;
     };
 
-    // Stores original geometries so clients can be restored
-    this.original = [];
-
     this.add = function(client) { 
         if (!self.eligible(client)) return;
-        self.original[client.windowId] = client.geometry;
+        self.original[client.windowId] = Qt.rect(client.geometry.x, client.geometry.y, client.geometry.width, client.geometry.height);
 
         client.clientFinishUserMovedResized.connect(self.move);
 
@@ -69,7 +70,7 @@ function Activity() {
     };
 
     this.remove = function(client) {
-        client.geometry = self.original[client.windowId];
+        self.reset(client);
 
         client.clientFinishUserMovedResized.disconnect(self.move);
 
@@ -78,22 +79,27 @@ function Activity() {
         p.screen.tile();
     };
 
+    this.reset = function(client) {
+        var original = this.original[client.windowId];
+        client.geometry.width = original.width;
+        client.geometry.height = original.height;
+    };
+
     this.move = function(client) {
         var p = self.find(client);
 
-        if (client.geometry.width === p.screen.layout.tiles[p.index].width &&
-            client.geometry.height === p.screen.layout.tiles[p.index].height) {
-
-                if (client.screen !== p.screen.id) {
-                    self.remove(client)
-                }
-                else {
-                    p.screen.move(client, p.index)
-                }
-
+        if (client.geometry.width === p.screen.layout.tiles[p.index].width && client.geometry.height === p.screen.layout.tiles[p.index].height) {
+            if (client.screen !== p.screen.id) {
+                self.remove(client)
+            }
+            else {
+                p.screen.move(client, p.index)
+            }
+        }
+        else {
+            p.screen.layout.move(client, p.index);
         }
 
-        p.screen.layout.move(client, p.index);
         p.screen.tile(p.screen.clients.length);
     };
 
@@ -112,5 +118,20 @@ function Activity() {
     workspace.activitiesChanged.connect(function(client) {
         self.remove(client);
     });
+
+
+    this.toggle = function() {
+        var client = workspace.activeClient;
+
+        try {
+            self.remove(client);
+        }
+        catch (error) {
+            self.add(client);
+        }
+        
+    };
+
+    KWin.registerShortcut("Quarter: Float On/Off", "Quarter: Float On/Off", "Meta+F", this.toggle);
 
 }
