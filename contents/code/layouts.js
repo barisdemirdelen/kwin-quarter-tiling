@@ -35,6 +35,9 @@ function QuarterLayout(geometry, max) {
             this.tiles[i].height = (i === 0 || i === 1) ? this.pane.y - this.gaps * 1.5 : this.geometry.height - this.pane.y - this.gaps * 1.5;
         }
 
+
+        // Fill missing
+
         if (count !== 4) 
             this.tiles[0].height += this.geometry.height - this.pane.y - this.gaps / 2;
 
@@ -51,7 +54,22 @@ function QuarterLayout(geometry, max) {
 
     this.move = function(client, index) {
         this.pane.x += (index === 0 || index === 3) ? client.geometry.width - this.tiles[index].width : this.tiles[index].width - client.geometry.width;
-        this.pane.y += (index === 0 || index === 1) ? client.geometry.height - this.tiles[index].height : this.tiles[index].height - client.geometry.height;
+        this.pane.y += (index === 0 || index === 1) ? client.geometry.height - this.tiles[index].height : this.tiles[index].height - client.geometry.height
+        
+
+        // Baby-proofing
+
+        if (this.pane.x < this.geometry.x + 80)
+            this.pane.x = this.geometry.x + 80;
+    
+        if (this.pane.x > this.geometry.x + this.geometry.width - 80)
+            this.pane.x = this.geometry.x + this.geometry.width - 80;
+
+        if (this.pane.y < this.geometry.y + 80)
+            this.pane.y = this.geometry.y + 80;
+    
+        if (this.pane.y > this.geometry.y + this.geometry.height - 80)
+            this.pane.y = this.geometry.y + this.geometry.height - 80;
     };
 }
 
@@ -87,6 +105,9 @@ function MasterLayout(geometry, max) {
                                    (i === 2) ? this.pane.yb - this.pane.yt - this.gaps * 1.333 : 
                                                this.geometry.height - this.pane.yb - this.gaps * 1.33;
         }
+        
+
+        // Fill missing
 
         switch (count) {
             case (1):
@@ -122,5 +143,31 @@ function MasterLayout(geometry, max) {
                 this.pane.yb += this.tiles[index].height - client.geometry.height;
                 break;
         }
+
+        
+        // Baby-proofing
+
+        if (this.pane.x < this.geometry.x + 80)
+            this.pane.x = this.geometry.x + 80;
+        
+        if (this.pane.x > this.geometry.x + this.geometry.width - 80)
+            this.pane.x = this.geometry.x + this.geometry.width - 80;
+
+        if (this.pane.yt < this.geometry.y + 80)
+            this.pane.yt = this.geometry.y + 80;
+        
+        if (this.pane.yb > this.geometry.y + this.geometry.height - 80)
+            this.pane.yb = this.geometry.y + this.geometry.height - 80;
+
+        if (this.pane.yb < this.pane.yt) {
+            this.pane.yt = this.geometry.height / 3;
+            this.pane.yb = this.geometry.height / 1.5;
+        }
+
+        if (this.pane.yt > this.pane.yb) {
+            this.pane.yt = this.geometry.height / 3;
+            this.pane.yb = this.geometry.height / 1.5;
+        }
+
     };
 }

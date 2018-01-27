@@ -52,7 +52,6 @@ function Activity() {
                 client.menu || client.notification || client.popupMenu || 
                 client.specialWindow || client.splash || client.toolbar ||
                 client.tooltip || client.utility || client.transient ||
-                client.activities[0].toString() !== this.id ||
                 this.ignored.indexOf(client.resourceClass.toString()) > -1 ||
                 this.ignored.indexOf(client.resourceName.toString()) > -1 ||
                 this.desktops[client.desktop].screens[client.screen].clients.length > this.desktops[client.desktop].screens[client.screen].layout.max - 1 ) ? 
@@ -130,6 +129,12 @@ function Activity() {
             screen.clients.push(client);
             screen.tile();
         }
+        else {
+            self.reset(client);
+
+            client.clientFinishUserMovedResized.disconnect(self.move);
+            if (KWin.readConfig("live", false).toString() === "true") client.clientStepUserMovedResized.disconnect(self.resize);
+        }
         
     };
 
@@ -144,13 +149,23 @@ function Activity() {
     });
 
     workspace.desktopPresenceChanged.connect(function(client, desktop) {
-        self.remove(client);
+        self.relocate(client);
+    });
+
+    workspace.currentDesktopChanged.connect(function(desktop, client) {
+        self.tile();
     });
 
     workspace.activitiesChanged.connect(function(client) {
         self.remove(client);
     });
 
+    workspace.clientMinimized.connect(function(client) {
+        self.remove(client);
+    });
+
+    workspace.clientMaximizeSet.connect(function(client, h, v) {
+    });
 
     this.toggle = function() {
         var client = workspace.activeClient;
