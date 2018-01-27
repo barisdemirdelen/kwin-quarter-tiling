@@ -63,6 +63,7 @@ function Activity() {
         self.original[client.windowId] = Qt.rect(client.geometry.x, client.geometry.y, client.geometry.width, client.geometry.height);
 
         client.clientFinishUserMovedResized.connect(self.move);
+        if (KWin.readConfig("live", false).toString() === "true") client.clientStepUserMovedResized.connect(self.resize);
 
         var screen = self.desktops[client.desktop].screens[client.screen];
         screen.clients.push(client);
@@ -73,6 +74,7 @@ function Activity() {
         self.reset(client);
 
         client.clientFinishUserMovedResized.disconnect(self.move);
+        if (KWin.readConfig("live", false).toString() === "true") client.clientStepUserMovedResized.disconnect(self.resize);
 
         var p = self.find(client);
         p.screen.clients.splice(p.index, 1);
@@ -83,6 +85,19 @@ function Activity() {
         var original = this.original[client.windowId];
         client.geometry.width = original.width;
         client.geometry.height = original.height;
+    };
+
+    this.resize = function(client) {
+        var p = self.find(client);
+
+        if (client.geometry.width === p.screen.layout.tiles[p.index].width && client.geometry.height === p.screen.layout.tiles[p.index].height) {
+            return;
+        }
+        else {
+            p.screen.layout.move(client, p.index);
+        }
+
+        p.screen.tile(p.screen.clients.length);
     };
 
     this.move = function(client) {
@@ -129,7 +144,7 @@ function Activity() {
         catch (error) {
             self.add(client);
         }
-        
+
     };
 
     KWin.registerShortcut("Quarter: Float On/Off", "Quarter: Float On/Off", "Meta+F", this.toggle);
