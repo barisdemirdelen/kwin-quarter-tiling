@@ -28,17 +28,25 @@ function QuarterLayout(geometry, max) {
     }
 
     this.tile = function(count) {
-        for (var t = 0; t < this.tiles.length; t++) {
-            this.tiles[t].x = (t === 0 || t === 3) ? this.geometry.x + this.gaps : this.geometry.x + this.pane.x + this.gaps;
-            this.tiles[t].y = (t === 0 || t === 1) ? this.geometry.y + this.gaps : this.geometry.y + this.pane.y + this.gaps;
-            this.tiles[t].width = (t === 0 || t === 3) ? this.pane.x - this.gaps * 1.5 : this.geometry.width - this.pane.x - this.gaps * 1.5;
-            this.tiles[t].height = (t === 0 || t === 1) ? this.pane.y - this.gaps * 1.5 : this.geometry.height - this.pane.y - this.gaps * 1.5;
+        for (var i = 0; i < this.tiles.length; i++) {
+            this.tiles[i].x = (i === 0 || i === 3) ? this.geometry.x + this.gaps : this.geometry.x + this.pane.x + this.gaps / 2;
+            this.tiles[i].y = (i === 0 || i === 1) ? this.geometry.y + this.gaps : this.geometry.y + this.pane.y + this.gaps / 2;
+            this.tiles[i].width = (i === 0 || i === 3) ? this.pane.x - this.gaps * 1.5 : this.geometry.width - this.pane.x - this.gaps * 1.5;
+            this.tiles[i].height = (i === 0 || i === 1) ? this.pane.y - this.gaps * 1.5 : this.geometry.height - this.pane.y - this.gaps * 1.5;
         }
 
-        // Fill missing
-        this.tiles[0].width += (count === 1) ? this.geometry.width - this.pane.x - this.gaps : 0;
-        this.tiles[0].height += (count !== 4) ? this.geometry.height - this.pane.y - this.gaps : 0;
-        this.tiles[1].height += (count === 2) ? this.geometry.height - this.pane.y - this.gaps : 0;
+        if (count !== 4) 
+            this.tiles[0].height += this.geometry.height - this.pane.y - this.gaps / 2;
+
+        switch (count) {
+            case (1):
+                this.tiles[0].width += this.geometry.width - this.pane.x - this.gaps / 2;
+                break;
+            case (2):
+                this.tiles[1].height += this.geometry.height - this.pane.y - this.gaps / 2;
+                break;
+        }
+
     };
 
     this.move = function(client, index) {
@@ -65,27 +73,32 @@ function MasterLayout(geometry, max) {
     }
 
     this.tile = function(count) {
-        for (var t = 0; t < this.tiles.length; t++) {
-            this.tiles[t].x = (t === 0) ? this.geometry.x + this.gaps : this.geometry.x + this.pane.x + this.gaps;
-            this.tiles[t].y = (t === 0 || t === 1) ? this.geometry.y + this.gaps : (t === 2) ? this.geometry.y + this.pane.yt + this.gaps / 1.33 : this.pane.yb + this.gaps / 2;
-            this.tiles[t].width = (t === 0) ? this.pane.x - this.gaps : this.geometry.width - this.pane.x - this.gaps * 2;
-            this.tiles[t].height = (t === 0) ? this.geometry.height - this.gaps * 2 : 
-                                   (t === 1) ? this.pane.yt - this.gaps * 1.5: 
-                                   (t === 2) ? this.pane.yb - this.pane.yt - this.gaps * 1.5 : 
-                                               this.geometry.height - this.pane.yb - this.gaps * 1.5;
+        for (var i = 0; i < this.tiles.length; i++) {
+            this.tiles[i].x = (i === 0) ? this.geometry.x + this.gaps : this.geometry.x + this.pane.x + this.gaps / 2;
+
+            this.tiles[i].y = (i === 0 || i === 1) ? this.geometry.y + this.gaps : 
+                                         (i === 2) ? this.geometry.y + this.pane.yt + this.gaps / 1.5:
+                                                     this.pane.yb + this.gaps / 3;
+
+            this.tiles[i].width = (i === 0) ? this.pane.x - this.gaps * 1.5 : this.geometry.width - this.pane.x - this.gaps * 1.5;
+            
+            this.tiles[i].height = (i === 0) ? this.geometry.height - this.gaps * 2 : 
+                                   (i === 1) ? this.pane.yt - this.gaps * 1.333: 
+                                   (i === 2) ? this.pane.yb - this.pane.yt - this.gaps * 1.333 : 
+                                               this.geometry.height - this.pane.yb - this.gaps * 1.33;
         }
 
         switch (count) {
             case (1):
-                this.tiles[0].width += this.geometry.width - this.pane.x;
+                this.tiles[0].width += this.geometry.width - this.pane.x - this.gaps / 2;
                 break;
             case (2):
-                this.tiles[1].height += this.geometry.height - this.pane.yt - this.gaps / 2;
+                this.tiles[1].height += this.geometry.height - this.pane.yt - this.gaps / 1.5;
                 break;
             case (3):
-                this.tiles[1].height += (this.geometry.height - this.pane.yb) / 2;
-                this.tiles[2].height += Math.ceil( (this.geometry.height - this.pane.yb) / 2 );
-                this.tiles[2].y += (this.geometry.height - this.pane.yb) / 2 - this.gaps / 3;
+                this.tiles[1].height += (this.geometry.height - this.pane.yb - this.gaps / 2) / 2;
+                this.tiles[2].height += (this.geometry.height - this.pane.yb - this.gaps / 2) / 2;
+                this.tiles[2].y += (this.geometry.height - this.pane.yb) / 2;
                 break;
 
         }

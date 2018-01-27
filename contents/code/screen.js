@@ -13,10 +13,10 @@ function Screen(id) {
     this.tile = function() {
         this.layout.tile(this.clients.length);
         for (var i = 0; i < this.clients.length; i++) {;
-            this.clients[i].geometry.x = this.layout.tiles[i].x;
-            this.clients[i].geometry.y = this.layout.tiles[i].y;
-            this.clients[i].geometry.width = this.layout.tiles[i].width;
-            this.clients[i].geometry.height = this.layout.tiles[i].height;
+            this.clients[i].geometry.x = Math.round(this.layout.tiles[i].x);
+            this.clients[i].geometry.y = Math.round(this.layout.tiles[i].y);
+            this.clients[i].geometry.width = Math.round(this.layout.tiles[i].width);
+            this.clients[i].geometry.height = Math.round(this.layout.tiles[i].height);
         }
     };
 

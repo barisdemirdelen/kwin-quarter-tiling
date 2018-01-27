@@ -105,7 +105,7 @@ function Activity() {
     this.move = function(client) {
         var p = self.find(client);
 
-        if (client.geometry.width === p.screen.layout.tiles[p.index].width && client.geometry.height === p.screen.layout.tiles[p.index].height) {
+        if (client.geometry.width === Math.round(p.screen.layout.tiles[p.index].width) && client.geometry.height === Math.round(p.screen.layout.tiles[p.index].height)) {
             if (client.screen !== p.screen.id) {
                 self.relocate(client)
             }
