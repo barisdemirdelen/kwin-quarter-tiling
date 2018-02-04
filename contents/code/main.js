@@ -9,11 +9,9 @@ function Activity() {
     // A hack to access this from the inner functions
     var self = this;
 
-    this.ignored = [
-        "plasma",
-        "plasma-desktop",
-        "plasmashell"
-    ];
+    this.ignored = [ "albert", "kazam", "krunner", "ksmserver", "lattedock",
+                    "pinentry", "Plasma", "plasma", "plasma-desktop", "plasmashell",
+                    "plugin-container", "simplescreenrecorder", "yakuake" ];
 
     this.id = workspace.currentActivity.toString();
 
@@ -165,6 +163,11 @@ function Activity() {
     });
 
     workspace.clientMaximizeSet.connect(function(client, h, v) {
+        // TODO
+    });
+
+    workspace.numberDesktopsChanged(function(oldDesktops) {
+        // TODO
     });
 
     this.toggle = function() {

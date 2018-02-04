@@ -117,8 +117,8 @@ function MasterLayout(geometry, max) {
                 this.tiles[1].height += this.geometry.height - this.pane.yt - this.gaps / 1.5;
                 break;
             case (3):
-                this.tiles[1].height += (this.geometry.height - this.pane.yb - this.gaps / 2) / 2;
-                this.tiles[2].height += (this.geometry.height - this.pane.yb - this.gaps / 2) / 2;
+                this.tiles[1].height += (this.geometry.height - this.pane.yb - this.gaps / 1.5) / 2;
+                this.tiles[2].height += (this.geometry.height - this.pane.yb - this.gaps / 1.5) / 2;
                 this.tiles[2].y += (this.geometry.height - this.pane.yb) / 2;
                 break;
 
