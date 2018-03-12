@@ -16,7 +16,7 @@ function Activity() {
     this.id = workspace.currentActivity.toString();
     this.original = [];
     this.desktops = [];
-    this.debug = false;
+    this.debug = true;
 
     this.init = function () {
         self.log("init");
@@ -109,6 +109,9 @@ function Activity() {
         }
 
         var p = self.find(client);
+        if (p.screen === -1) {
+            return
+        }
         p.screen.clients.splice(p.index, 1);
         p.screen.tile();
     };
@@ -124,6 +127,9 @@ function Activity() {
     this.resize = function (client) {
         self.log("resize");
         var p = self.find(client);
+        if (p.screen === -1) {
+            return
+        }
 
         if (client.geometry.width === p.screen.layout.tiles[p.index].width &&
             client.geometry.height === p.screen.layout.tiles[p.index].height) {
@@ -139,26 +145,31 @@ function Activity() {
     this.move = function (client) {
         self.log("move");
         var p = self.find(client);
+        if (p.screen === -1) {
+            return
+        }
 
         if (client.geometry.width === Math.round(p.screen.layout.tiles[p.index].width) &&
             client.geometry.height === Math.round(p.screen.layout.tiles[p.index].height)) {
             if (client.screen !== p.screen.id) {
                 self.relocate(client)
-            }
-            else {
+            } else {
                 p.screen.move(client, p.index)
             }
-        }
-        else {
+        } else {
             p.screen.layout.move(client, p.index);
         }
 
-        p.screen.tile(p.screen.clients.length);
+        p.screen.tile();
     };
 
     this.relocate = function (client) {
         self.log("relocate");
         var p = self.find(client);
+        if (p.screen === -1) {
+            return
+        }
+
         p.screen.clients.splice(p.index, 1);
         p.screen.tile();
 
@@ -166,21 +177,8 @@ function Activity() {
             var screen = self.desktops[client.desktop].screens[client.screen];
             screen.clients.push(client);
             screen.tile();
-        }
-        else {
-            self.reset(client);
-
-            client.clientFinishUserMovedResized.disconnect(function () {
-                self.move(client);
-            });
-            client.screenChanged.disconnect(function () {
-                self.relocate(client);
-            });
-            if (isConfigSet("live")) {
-                client.clientStepUserMovedResized.disconnect(function () {
-                    self.move(client);
-                });
-            }
+        } else {
+            self.remove(client);
         }
 
     };
@@ -192,8 +190,7 @@ function Activity() {
 
         try {
             self.remove(client);
-        }
-        catch (error) {
+        } catch (error) {
             self.add(client);
         }
 

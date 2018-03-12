@@ -31,30 +31,25 @@ function Screen(id) {
                 geometry = this.layout.tiles[index];
             }
 
-            centers[i] = ({
-                x: geometry.x + geometry.width / 2,
-                y: geometry.y + geometry.height / 2
-            });
+            centers[i] = Qt.point(geometry.x + geometry.width / 2, geometry.y + geometry.height / 2);
 
         }
 
-        geometry = client.geometry;
-        geometry.x += geometry.width / 2;
-        geometry.y += geometry.height / 2;
+        var center = Qt.point(client.geometry.x + geometry.width / 2, client.geometry.y + geometry.height / 2);
 
-        var closest = centers[index];
+        var closestIndex = index;
         var distance = 999999;
 
         for (var i = 0; i < centers.length; i++) {
-            var d = Math.abs(geometry.x - centers[i].x) + Math.abs(geometry.y - centers[i].y);
+            var d = Math.pow(center.x - centers[i].x, 2) + Math.pow(center.y - centers[i].y, 2);
             if (d < distance) {
-                closest = centers[i];
+                closestIndex = i;
                 distance = d;
             }
         }
 
-        if (index !== centers.indexOf(closest)) {
-            this.swap(index, centers.indexOf(closest))
+        if (index !== closestIndex) {
+            this.swap(index, closestIndex)
         }
 
     };
@@ -64,6 +59,7 @@ function Screen(id) {
 
         this.clients[i] = this.clients[j];
         this.clients[j] = temp;
+
     };
 
 
