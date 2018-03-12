@@ -29,10 +29,18 @@ function QuarterLayout(geometry, max) {
 
     this.tile = function (count) {
         for (var i = 0; i < this.tiles.length; i++) {
-            this.tiles[i].x = (i === 0 || i === 3) ? this.geometry.x + this.gaps : this.geometry.x + this.pane.x + this.gaps / 2;
-            this.tiles[i].y = (i === 0 || i === 1) ? this.geometry.y + this.gaps : this.geometry.y + this.pane.y + this.gaps / 2;
-            this.tiles[i].width = (i === 0 || i === 3) ? this.pane.x - this.gaps * 1.5 : this.geometry.width - this.pane.x - this.gaps * 1.5;
-            this.tiles[i].height = (i === 0 || i === 1) ? this.pane.y - this.gaps * 1.5 : this.geometry.height - this.pane.y - this.gaps * 1.5;
+            this.tiles[i].x = (i === 0 || i === 3) ?
+                this.geometry.x + this.gaps :
+                this.geometry.x + this.pane.x + this.gaps / 2;
+            this.tiles[i].y = (i === 0 || i === 1) ?
+                this.geometry.y + this.gaps :
+                this.geometry.y + this.pane.y + this.gaps / 2;
+            this.tiles[i].width = (i === 0 || i === 3) ?
+                this.pane.x - this.gaps * 1.5 :
+                this.geometry.width - this.pane.x - this.gaps * 1.5;
+            this.tiles[i].height = (i === 0 || i === 1) ?
+                this.pane.y - this.gaps * 1.5 :
+                this.geometry.height - this.pane.y - this.gaps * 1.5;
         }
 
 
@@ -53,23 +61,16 @@ function QuarterLayout(geometry, max) {
     };
 
     this.move = function (client, index) {
-        this.pane.x += (index === 0 || index === 3) ? client.geometry.width - this.tiles[index].width : this.tiles[index].width - client.geometry.width;
-        this.pane.y += (index === 0 || index === 1) ? client.geometry.height - this.tiles[index].height : this.tiles[index].height - client.geometry.height
-
+        this.pane.x += (index === 0 || index === 3) ?
+            client.geometry.width - this.tiles[index].width :
+            this.tiles[index].width - client.geometry.width;
+        this.pane.y += (index === 0 || index === 1) ?
+            client.geometry.height - this.tiles[index].height :
+            this.tiles[index].height - client.geometry.height;
 
         // Baby-proofing
-
-        if (this.pane.x < 80)
-            this.pane.x = 80;
-
-        if (this.pane.x > this.geometry.width - 80)
-            this.pane.x = this.geometry.width - 80;
-
-        if (this.pane.y < 80)
-            this.pane.y = 80;
-
-        if (this.pane.y > this.geometry.height - 80)
-            this.pane.y = this.geometry.height - 80;
+        this.pane.x = clip(this.pane.x, 80, this.geometry.width - 80);
+        this.pane.y = clip(this.pane.y, 80, this.geometry.height - 80);
     };
 }
 
@@ -92,17 +93,26 @@ function MasterLayout(geometry, max) {
 
     this.tile = function (count) {
         for (var i = 0; i < this.tiles.length; i++) {
-            this.tiles[i].x = (i === 0) ? this.geometry.x + this.gaps : this.geometry.x + this.pane.x + this.gaps / 2;
+            this.tiles[i].x = (i === 0) ?
+                this.geometry.x + this.gaps :
+                this.geometry.x + this.pane.x + this.gaps / 2;
 
-            this.tiles[i].y = (i === 0 || i === 1) ? this.geometry.y + this.gaps :
-                (i === 2) ? this.geometry.y + this.pane.yt + this.gaps / 1.5 :
+            this.tiles[i].y = (i === 0 || i === 1) ?
+                this.geometry.y + this.gaps :
+                (i === 2) ?
+                    this.geometry.y + this.pane.yt + this.gaps / 1.5 :
                     this.pane.yb + this.gaps / 3;
 
-            this.tiles[i].width = (i === 0) ? this.pane.x - this.gaps * 1.5 : this.geometry.width - this.pane.x - this.gaps * 1.5;
+            this.tiles[i].width = (i === 0) ?
+                this.pane.x - this.gaps * 1.5 :
+                this.geometry.width - this.pane.x - this.gaps * 1.5;
 
-            this.tiles[i].height = (i === 0) ? this.geometry.height - this.gaps * 2 :
-                (i === 1) ? this.pane.yt - this.gaps * 1.333 :
-                    (i === 2) ? this.pane.yb - this.pane.yt - this.gaps * 1.333 :
+            this.tiles[i].height = (i === 0) ?
+                this.geometry.height - this.gaps * 2 :
+                (i === 1) ?
+                    this.pane.yt - this.gaps * 1.333 :
+                    (i === 2) ?
+                        this.pane.yb - this.pane.yt - this.gaps * 1.333 :
                         this.geometry.height - this.pane.yb - this.gaps * 1.33;
         }
 
@@ -127,7 +137,9 @@ function MasterLayout(geometry, max) {
     };
 
     this.move = function (client, index) {
-        this.pane.x += (index === 0) ? client.geometry.width - this.tiles[index].width : this.tiles[index].width - client.geometry.width;
+        this.pane.x += (index === 0) ?
+            client.geometry.width - this.tiles[index].width :
+            this.tiles[index].width - client.geometry.width;
 
         switch (index) {
             case (1):
@@ -135,7 +147,7 @@ function MasterLayout(geometry, max) {
                 break;
             case (2):
                 if (client.geometry.y !== this.tiles[index].y)
-                    this.pane.yt += client.geometry.y - this.tiles[index].y
+                    this.pane.yt += client.geometry.y - this.tiles[index].y;
                 else
                     this.pane.yb += client.geometry.height - this.tiles[index].height;
                 break;
@@ -146,18 +158,9 @@ function MasterLayout(geometry, max) {
 
 
         // Baby-proofing
-
-        if (this.pane.x < 80)
-            this.pane.x = 80;
-
-        if (this.pane.x > this.geometry.width - 80)
-            this.pane.x = this.geometry.width - 80;
-
-        if (this.pane.yt < 80)
-            this.pane.yt = 80;
-
-        if (this.pane.yb > this.geometry.height - 80)
-            this.pane.yb = this.geometry.height - 80;
+        this.pane.x = clip(this.pane.x, 80, this.geometry.width - 80);
+        this.pane.yt = Math.max(this.pane.yt, 80);
+        this.pane.yb = Math.min(this.pane.yb, this.geometry.height - 80);
 
         if (this.pane.yb < this.pane.yt) {
             this.pane.yt = this.geometry.height / 3;

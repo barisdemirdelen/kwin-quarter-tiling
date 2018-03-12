@@ -1,3 +1,4 @@
+Qt.include("util.js");
 Qt.include("desktop.js");
 Qt.include("screen.js");
 Qt.include("layouts.js");
@@ -15,7 +16,7 @@ function Activity() {
     this.id = workspace.currentActivity.toString();
     this.original = [];
     this.desktops = [];
-    this.debug = true;
+    this.debug = false;
 
     this.init = function () {
         self.log("init");
@@ -80,7 +81,7 @@ function Activity() {
         client.screenChanged.connect(function () {
             self.relocate(client);
         });
-        if (KWin.readConfig("live", false).toString() === "true") {
+        if (isConfigSet("live")) {
             client.clientStepUserMovedResized.connect(function () {
                 self.move(client);
             });
@@ -101,7 +102,7 @@ function Activity() {
         client.screenChanged.disconnect(function () {
             self.relocate(client);
         });
-        if (KWin.readConfig("live", false).toString() === "true") {
+        if (isConfigSet("live")) {
             client.clientStepUserMovedResized.disconnect(function () {
                 self.move(client);
             });
@@ -175,7 +176,7 @@ function Activity() {
             client.screenChanged.disconnect(function () {
                 self.relocate(client);
             });
-            if (KWin.readConfig("live", false).toString() === "true") {
+            if (isConfigSet("live")) {
                 client.clientStepUserMovedResized.disconnect(function () {
                     self.move(client);
                 });
@@ -200,7 +201,7 @@ function Activity() {
 
     this.connectEvents = function () {
 
-        if (KWin.readConfig("auto", false).toString() === "true") {
+        if (isConfigSet("auto")) {
             workspace.clientAdded.connect(self.add);
         }
 
@@ -224,14 +225,6 @@ function Activity() {
         workspace.numberDesktopsChanged(function (oldDesktops) {
             // TODO
         });
-
-        // workspace.clientActivated(function (client) {
-        //    self.log("activee")
-        // });
-
-        // workspace.desktopChanged(function (client){
-        //     self.log("desktopChanged")
-        // });
 
     };
 
