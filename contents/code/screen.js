@@ -4,15 +4,15 @@ function Screen(id) {
 
     this.id = id;
 
-    this.geometry = workspace.clientArea(0, id, 0)
+    this.geometry = workspace.clientArea(0, id, 0);
 
     this.clients = [];
     this.layout = new Layout(KWin.readConfig("layout", 0), this.geometry);
 
 
-    this.tile = function() {
+    this.tile = function () {
         this.layout.tile(this.clients.length);
-        for (var i = 0; i < this.clients.length; i++) {;
+        for (var i = 0; i < this.clients.length; i++) {
             this.clients[i].geometry.x = Math.round(this.layout.tiles[i].x);
             this.clients[i].geometry.y = Math.round(this.layout.tiles[i].y);
             this.clients[i].geometry.width = Math.round(this.layout.tiles[i].width);
@@ -20,7 +20,7 @@ function Screen(id) {
         }
     };
 
-    this.move = function(client, index) {
+    this.move = function (client, index) {
         var geometry;
         var centers = [];
         for (var i = 0; i < this.clients.length; i++) {
@@ -59,7 +59,7 @@ function Screen(id) {
 
     };
 
-    this.swap = function(i, j) {
+    this.swap = function (i, j) {
         var temp = this.clients[i];
 
         this.clients[i] = this.clients[j];
