@@ -43,7 +43,8 @@ function Activity() {
         for (var i = 0; i < self.desktops.length; i++) {
             for (var j = 0; j < self.desktops[i].screens.length; j++) {
                 for (var l = 0; l < self.desktops[i].screens[j].clients.length; l++) {
-                    if (self.desktops[i].screens[j].clients[l].windowId === client.windowId || self.desktops[i].screens[j].frameId === client.frameId) {
+                    if (self.desktops[i].screens[j].clients[l].windowId === client.windowId ||
+                        self.desktops[i].screens[j].frameId === client.frameId) {
                         return {screen: self.desktops[i].screens[j], index: l};
                     }
                 }
@@ -63,16 +64,27 @@ function Activity() {
             client.tooltip || client.utility || client.transient ||
             self.ignored.indexOf(client.resourceClass.toString()) > -1 ||
             self.ignored.indexOf(client.resourceName.toString()) > -1 ||
-            self.desktops[client.desktop].screens[client.screen].clients.length > self.desktops[client.desktop].screens[client.screen].layout.max - 1));
+            self.desktops[client.desktop].screens[client.screen].clients.length >
+            self.desktops[client.desktop].screens[client.screen].layout.max - 1));
     };
 
     this.add = function (client) {
         self.log("add");
         if (!self.eligible(client)) return;
-        self.original[client.windowId] = Qt.rect(client.geometry.x, client.geometry.y, client.geometry.width, client.geometry.height);
+        self.original[client.windowId] = Qt.rect(client.geometry.x, client.geometry.y,
+            client.geometry.width, client.geometry.height);
 
-        client.clientFinishUserMovedResized.connect(self.move);
-        if (KWin.readConfig("live", false).toString() === "true") client.clientStepUserMovedResized.connect(self.resize);
+        client.clientFinishUserMovedResized.connect(function () {
+            self.move(client);
+        });
+        client.screenChanged.connect(function () {
+            self.relocate(client);
+        });
+        if (KWin.readConfig("live", false).toString() === "true") {
+            client.clientStepUserMovedResized.connect(function () {
+                self.move(client);
+            });
+        }
 
         var screen = self.desktops[client.desktop].screens[client.screen];
         screen.clients.push(client);
@@ -83,8 +95,17 @@ function Activity() {
         self.log("remove");
         self.reset(client);
 
-        client.clientFinishUserMovedResized.disconnect(self.move);
-        if (KWin.readConfig("live", false).toString() === "true") client.clientStepUserMovedResized.disconnect(self.resize);
+        client.clientFinishUserMovedResized.disconnect(function () {
+            self.move(client);
+        });
+        client.screenChanged.disconnect(function () {
+            self.relocate(client);
+        });
+        if (KWin.readConfig("live", false).toString() === "true") {
+            client.clientStepUserMovedResized.disconnect(function () {
+                self.move(client);
+            });
+        }
 
         var p = self.find(client);
         p.screen.clients.splice(p.index, 1);
@@ -103,7 +124,8 @@ function Activity() {
         self.log("resize");
         var p = self.find(client);
 
-        if (client.geometry.width === p.screen.layout.tiles[p.index].width && client.geometry.height === p.screen.layout.tiles[p.index].height) {
+        if (client.geometry.width === p.screen.layout.tiles[p.index].width &&
+            client.geometry.height === p.screen.layout.tiles[p.index].height) {
             return;
         }
         else {
@@ -117,7 +139,8 @@ function Activity() {
         self.log("move");
         var p = self.find(client);
 
-        if (client.geometry.width === Math.round(p.screen.layout.tiles[p.index].width) && client.geometry.height === Math.round(p.screen.layout.tiles[p.index].height)) {
+        if (client.geometry.width === Math.round(p.screen.layout.tiles[p.index].width) &&
+            client.geometry.height === Math.round(p.screen.layout.tiles[p.index].height)) {
             if (client.screen !== p.screen.id) {
                 self.relocate(client)
             }
@@ -146,8 +169,17 @@ function Activity() {
         else {
             self.reset(client);
 
-            client.clientFinishUserMovedResized.disconnect(self.move);
-            if (KWin.readConfig("live", false).toString() === "true") client.clientStepUserMovedResized.disconnect(self.resize);
+            client.clientFinishUserMovedResized.disconnect(function () {
+                self.move(client);
+            });
+            client.screenChanged.disconnect(function () {
+                self.relocate(client);
+            });
+            if (KWin.readConfig("live", false).toString() === "true") {
+                client.clientStepUserMovedResized.disconnect(function () {
+                    self.move(client);
+                });
+            }
         }
 
     };
@@ -168,15 +200,10 @@ function Activity() {
 
     this.connectEvents = function () {
 
-        // if (KWin.readConfig("auto", false).toString() === "true") {
-        workspace.clientAdded.connect(function (client) {
-            self.add(client);
-        });
-        // }
+        if (KWin.readConfig("auto", false).toString() === "true") {
+            workspace.clientAdded.connect(self.add);
+        }
 
-        workspace.clientRemoved.connect(function (client) {
-            self.remove(client);
-        });
 
         workspace.desktopPresenceChanged.connect(function (client, desktop) {
             self.relocate(client);
@@ -186,13 +213,9 @@ function Activity() {
             self.tile();
         });
 
-        workspace.activitiesChanged.connect(function (client) {
-            self.remove(client);
-        });
-
-        workspace.clientMinimized.connect(function (client) {
-            self.remove(client);
-        });
+        workspace.activitiesChanged.connect(self.remove);
+        workspace.clientMinimized.connect(self.remove);
+        workspace.clientRemoved.connect(self.remove);
 
         workspace.clientMaximizeSet.connect(function (client, h, v) {
             // TODO
@@ -201,6 +224,15 @@ function Activity() {
         workspace.numberDesktopsChanged(function (oldDesktops) {
             // TODO
         });
+
+        // workspace.clientActivated(function (client) {
+        //    self.log("activee")
+        // });
+
+        // workspace.desktopChanged(function (client){
+        //     self.log("desktopChanged")
+        // });
+
     };
 
     this.registerShortcuts = function () {
