@@ -23,29 +23,15 @@ function Screen(id) {
         for (var i = 0; i < this.clients.length; i++) {
 
             if (i !== client.screenIndex) {
-                centers[i] = this.clients[i].getCenter();
+                geometry = this.clients[i].geometry;
             } else {
-                geometry = this.layout.tiles[client.screenIndex];
-
-                centers[i] = Qt.point(geometry.x + geometry.width / 2,
-                    geometry.y + geometry.height / 2);
+                geometry = new Rect(this.layout.tiles[client.screenIndex]);
             }
-
-
+            centers[i] = geometry.getCenter();
         }
 
-        var center = client.getCenter();
-
-        var closestIndex = client.screenIndex;
-        var distance = Infinity;
-
-        for (var i = 0; i < centers.length; i++) {
-            var d = Math.pow(center.x - centers[i].x, 2) + Math.pow(center.y - centers[i].y, 2);
-            if (d < distance) {
-                closestIndex = i;
-                distance = d;
-            }
-        }
+        var center = client.geometry.getCenter();
+        var closestIndex = self.getLeastDistanceIndex(center, centers);
 
         if (client.screenIndex !== closestIndex) {
             this.swap(client.screenIndex, closestIndex)
@@ -76,6 +62,22 @@ function Screen(id) {
         this.clients[j].screenIndex = j;
 
     };
+
+
+    this.getLeastDistanceIndex = function (center, centers) {
+        var closestIndex = -1;
+        var distance = Infinity;
+
+        for (var i = 0; i < centers.length; i++) {
+            var d = getDistance2(center, centers[i]);
+            if (d < distance) {
+                closestIndex = i;
+                distance = d;
+            }
+        }
+        return closestIndex;
+    };
+
 
     this.isFull = function () {
         return self.clients.length > self.layout.max - 1

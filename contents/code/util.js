@@ -11,3 +11,7 @@ function clip(value, min, max) {
     }
     return value;
 }
+
+function getDistance2(a, b) {
+    return Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2);
+}
