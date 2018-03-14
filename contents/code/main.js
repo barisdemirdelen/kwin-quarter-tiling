@@ -1,4 +1,5 @@
 Qt.include("util.js");
+Qt.include("rect.js");
 Qt.include("client.js");
 Qt.include("layouts.js");
 Qt.include("screen.js");
@@ -50,7 +51,7 @@ function Activity() {
         if (!self.isEligible(client)) {
             return false;
         }
-        self.original[client.id] = client.getGeometryCopy();
+        self.original[client.id] = client.geometry.getCopy();
 
         client.kwinClient.clientFinishUserMovedResized.connect(function () {
             self.move(client);

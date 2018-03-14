@@ -4,7 +4,7 @@ function Client(kwinClient, desktop, screen) {
 
     this.kwinClient = kwinClient;
     this.id = kwinClient.windowId;
-    this.geometry = Rect(kwinClient.geometry);
+    this.geometry = new Rect(kwinClient.geometry);
     this.desktop = desktop;
     this.screen = screen;
     this.screenIndex = -1;
