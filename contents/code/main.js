@@ -93,7 +93,7 @@ function Activity() {
     this.reset = function (client) {
         self.log("reset");
         var original = self.original[client.id];
-        client.setGeometry(Qt.rect(client.geometry.x, client.geometry.y, original.width, original.height));
+        client.setGeometry(Qt.rect(client.geometry.x, client.geometry.y, original.rect.width, original.rect.height));
     };
 
     this.resize = function (client) {

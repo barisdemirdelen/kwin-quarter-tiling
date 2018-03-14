@@ -9,7 +9,7 @@ function Rect(rect) {
     };
 
     this.getCopy = function () {
-        return Qt.rect(self.rect.x, self.rect.y,
-            self.rect.width, self.rect.height);
+        return new Rect(Qt.rect(self.rect.x, self.rect.y,
+            self.rect.width, self.rect.height));
     };
 }

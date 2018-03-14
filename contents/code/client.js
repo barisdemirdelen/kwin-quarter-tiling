@@ -14,6 +14,7 @@ function Client(kwinClient, desktop, screen) {
         self.kwinClient.geometry.y = Math.round(geometry.y);
         self.kwinClient.geometry.width = Math.round(geometry.width);
         self.kwinClient.geometry.height = Math.round(geometry.height);
+        self.geometry = new Rect(self.kwinClient.geometry);
     };
 
     this.isEligible = function () {
