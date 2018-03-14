@@ -13,32 +13,31 @@ function Screen(id) {
     this.tile = function () {
         this.layout.tile(this.clients.length);
         for (var i = 0; i < this.clients.length; i++) {
-            this.clients[i].geometry.x = Math.round(this.layout.tiles[i].x);
-            this.clients[i].geometry.y = Math.round(this.layout.tiles[i].y);
-            this.clients[i].geometry.width = Math.round(this.layout.tiles[i].width);
-            this.clients[i].geometry.height = Math.round(this.layout.tiles[i].height);
+            this.clients[i].setGeometry(this.layout.tiles[i]);
         }
     };
 
-    this.move = function (client, index) {
+    this.move = function (client) {
         var geometry;
         var centers = [];
         for (var i = 0; i < this.clients.length; i++) {
 
-            if (i !== index) {
-                geometry = this.clients[i].geometry;
+            if (i !== client.screenIndex) {
+                centers[i] = this.clients[i].getCenter();
             } else {
-                geometry = this.layout.tiles[index];
+                geometry = this.layout.tiles[client.screenIndex];
+
+                centers[i] = Qt.point(geometry.x + geometry.width / 2,
+                    geometry.y + geometry.height / 2);
             }
 
-            centers[i] = Qt.point(geometry.x + geometry.width / 2, geometry.y + geometry.height / 2);
 
         }
 
-        var center = Qt.point(client.geometry.x + geometry.width / 2, client.geometry.y + geometry.height / 2);
+        var center = client.getCenter();
 
-        var closestIndex = index;
-        var distance = 999999;
+        var closestIndex = client.screenIndex;
+        var distance = Infinity;
 
         for (var i = 0; i < centers.length; i++) {
             var d = Math.pow(center.x - centers[i].x, 2) + Math.pow(center.y - centers[i].y, 2);
@@ -48,10 +47,23 @@ function Screen(id) {
             }
         }
 
-        if (index !== closestIndex) {
-            this.swap(index, closestIndex)
+        if (client.screenIndex !== closestIndex) {
+            this.swap(client.screenIndex, closestIndex)
         }
 
+    };
+
+
+    this.add = function (client) {
+        self.clients.push(client);
+        client.screenIndex = self.clients.length - 1;
+        self.tile();
+    };
+
+    this.remove = function (client) {
+        self.clients.splice(client.screenIndex, 1);
+        client.screenIndex = -1;
+        self.tile();
     };
 
     this.swap = function (i, j) {
@@ -60,6 +72,13 @@ function Screen(id) {
         this.clients[i] = this.clients[j];
         this.clients[j] = temp;
 
+        this.clients[i].screenIndex = i;
+        this.clients[j].screenIndex = j;
+
+    };
+
+    this.isFull = function () {
+        return self.clients.length > self.layout.max - 1
     };
 
 

@@ -60,13 +60,14 @@ function QuarterLayout(geometry, max) {
 
     };
 
-    this.move = function (client, index) {
+    this.move = function (client) {
+        var index = client.screenIndex;
         this.pane.x += (index === 0 || index === 3) ?
-            client.geometry.width - this.tiles[index].width :
-            this.tiles[index].width - client.geometry.width;
+            client.kwinClient.geometry.width - this.tiles[index].width :
+            this.tiles[index].width - client.kwinClient.geometry.width;
         this.pane.y += (index === 0 || index === 1) ?
-            client.geometry.height - this.tiles[index].height :
-            this.tiles[index].height - client.geometry.height;
+            client.kwinClient.geometry.height - this.tiles[index].height :
+            this.tiles[index].height - client.kwinClient.geometry.height;
 
         // Baby-proofing
         this.pane.x = clip(this.pane.x, 80, this.geometry.width - 80);
@@ -136,23 +137,24 @@ function MasterLayout(geometry, max) {
 
     };
 
-    this.move = function (client, index) {
+    this.move = function (client) {
+        var index = client.screenIndex;
         this.pane.x += (index === 0) ?
-            client.geometry.width - this.tiles[index].width :
-            this.tiles[index].width - client.geometry.width;
+            client.kwinClient.geometry.width - this.tiles[index].width :
+            this.tiles[index].width - client.kwinClient.geometry.width;
 
         switch (index) {
             case (1):
-                this.pane.yt += client.geometry.height - this.tiles[index].height;
+                this.pane.yt += client.kwinClient.geometry.height - this.tiles[index].height;
                 break;
             case (2):
-                if (client.geometry.y !== this.tiles[index].y)
-                    this.pane.yt += client.geometry.y - this.tiles[index].y;
+                if (client.kwinClient.geometry.y !== this.tiles[index].y)
+                    this.pane.yt += client.kwinClient.geometry.y - this.tiles[index].y;
                 else
-                    this.pane.yb += client.geometry.height - this.tiles[index].height;
+                    this.pane.yb += client.kwinClient.geometry.height - this.tiles[index].height;
                 break;
             case (3):
-                this.pane.yb += this.tiles[index].height - client.geometry.height;
+                this.pane.yb += this.tiles[index].height - client.kwinClient.geometry.height;
                 break;
         }
 

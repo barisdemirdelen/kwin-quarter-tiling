@@ -1,7 +1,8 @@
 Qt.include("util.js");
-Qt.include("desktop.js");
-Qt.include("screen.js");
+Qt.include("client.js");
 Qt.include("layouts.js");
+Qt.include("screen.js");
+Qt.include("desktop.js");
 
 function Activity() {
 
@@ -16,11 +17,11 @@ function Activity() {
     this.id = workspace.currentActivity.toString();
     this.original = [];
     this.desktops = [];
+    this.clients = {};
     this.debug = true;
 
     this.init = function () {
         self.log("init");
-
         for (var i = 0; i < workspace.desktops; i++) {
             self.desktops[i] = new Desktop(i);
         }
@@ -38,98 +39,64 @@ function Activity() {
         }
     };
 
-    // Hire me?
-    this.find = function (client) {
-        self.log("find");
-        for (var i = 0; i < self.desktops.length; i++) {
-            for (var j = 0; j < self.desktops[i].screens.length; j++) {
-                for (var l = 0; l < self.desktops[i].screens[j].clients.length; l++) {
-                    if (self.desktops[i].screens[j].clients[l].windowId === client.windowId ||
-                        self.desktops[i].screens[j].frameId === client.frameId) {
-                        return {screen: self.desktops[i].screens[j], index: l};
-                    }
-                }
-            }
-        }
-        self.log("nofind");
-        return {screen: -1, index: -1};
-    };
-
-    // Checks whether a client is eligible for tiling or not
-    this.eligible = function (client) {
-        self.log("eligible");
-        return (!(client.comboBox || client.desktopWindow || client.dialog ||
-            client.dndIcon || client.dock || client.dropdownMenu ||
-            client.menu || client.notification || client.popupMenu ||
-            client.specialWindow || client.splash || client.toolbar ||
-            client.tooltip || client.utility || client.transient ||
-            self.ignored.indexOf(client.resourceClass.toString()) > -1 ||
-            self.ignored.indexOf(client.resourceName.toString()) > -1 ||
-            self.desktops[client.desktop].screens[client.screen].clients.length >
-            self.desktops[client.desktop].screens[client.screen].layout.max - 1));
-    };
-
-    this.add = function (client) {
+    this.add = function (kwinClient) {
         self.log("add");
-        if (!self.eligible(client)) return;
-        self.original[client.windowId] = Qt.rect(client.geometry.x, client.geometry.y,
-            client.geometry.width, client.geometry.height);
+        if (kwinClient.screen < 0 || kwinClient.desktop < 0) {
+            return false;
+        }
+        var client = new Client(kwinClient, self.desktops[kwinClient.desktop],
+            self.desktops[kwinClient.desktop].screens[kwinClient.screen]);
+        self.clients[client.id] = client;
+        if (!self.isEligible(client)) {
+            return false;
+        }
+        self.original[client.id] = client.getGeometryCopy();
 
-        client.clientFinishUserMovedResized.connect(function () {
+        client.kwinClient.clientFinishUserMovedResized.connect(function () {
             self.move(client);
         });
-        client.screenChanged.connect(function () {
+        client.kwinClient.screenChanged.connect(function () {
             self.relocate(client);
         });
         if (isConfigSet("live")) {
-            client.clientStepUserMovedResized.connect(function () {
+            client.kwinClient.clientStepUserMovedResized.connect(function () {
                 self.move(client);
             });
         }
 
-        var screen = self.desktops[client.desktop].screens[client.screen];
-        screen.clients.push(client);
-        screen.tile();
+        client.screen.add(client);
+        return true;
     };
 
     this.remove = function (client) {
         self.log("remove");
         self.reset(client);
 
-        client.clientFinishUserMovedResized.disconnect(function () {
+        client.kwinClient.clientFinishUserMovedResized.disconnect(function () {
             self.move(client);
         });
-        client.screenChanged.disconnect(function () {
+        client.kwinClient.screenChanged.disconnect(function () {
             self.relocate(client);
         });
         if (isConfigSet("live")) {
-            client.clientStepUserMovedResized.disconnect(function () {
+            client.kwinClient.clientStepUserMovedResized.disconnect(function () {
                 self.move(client);
             });
         }
 
-        var p = self.find(client);
-        if (p.screen === -1) {
-            return
-        }
-        p.screen.clients.splice(p.index, 1);
-        p.screen.tile();
+        client.screen.remove(client);
+        client.screen = null;
+        return true
     };
 
     this.reset = function (client) {
         self.log("reset");
-        var original = self.original[client.windowId];
-
-        client.geometry.width = original.width;
-        client.geometry.height = original.height;
+        var original = self.original[client.id];
+        client.setGeometry(Qt.rect(client.geometry.x, client.geometry.y, original.width, original.height));
     };
 
     this.resize = function (client) {
         self.log("resize");
-        var p = self.find(client);
-        if (p.screen === -1) {
-            return
-        }
 
         if (client.geometry.width === p.screen.layout.tiles[p.index].width &&
             client.geometry.height === p.screen.layout.tiles[p.index].height) {
@@ -144,53 +111,47 @@ function Activity() {
 
     this.move = function (client) {
         self.log("move");
-        var p = self.find(client);
-        if (p.screen === -1) {
-            return
-        }
 
-        if (client.geometry.width === Math.round(p.screen.layout.tiles[p.index].width) &&
-            client.geometry.height === Math.round(p.screen.layout.tiles[p.index].height)) {
-            if (client.screen !== p.screen.id) {
+        var screen = client.screen;
+        if (client.kwinClient.geometry.width === Math.round(screen.layout.tiles[client.screenIndex].width) &&
+            client.kwinClient.geometry.height === Math.round(screen.layout.tiles[client.screenIndex].height)) {
+            if (client.screen.id !== client.kwinClient.screen || client.desktop.id !== client.kwinClient.desktop) {
                 self.relocate(client)
             } else {
-                p.screen.move(client, p.index)
+                self.log("screen move");
+                screen.move(client)
             }
         } else {
-            p.screen.layout.move(client, p.index);
+            self.log("layout move");
+            screen.layout.move(client);
         }
 
-        p.screen.tile();
+        screen.tile();
     };
 
     this.relocate = function (client) {
         self.log("relocate");
-        var p = self.find(client);
-        if (p.screen === -1) {
-            return
-        }
 
-        p.screen.clients.splice(p.index, 1);
-        p.screen.tile();
 
-        if (self.eligible(client)) {
-            var screen = self.desktops[client.desktop].screens[client.screen];
-            screen.clients.push(client);
-            screen.tile();
+        client.screen.remove(client);
+
+        client.desktop = self.desktops[client.kwinClient.desktop];
+        client.screen = self.desktops[client.kwinClient.desktop].screens[client.kwinClient.screen];
+
+        if (self.isEligible(client)) {
+            client.screen.add(client);
         } else {
             self.remove(client);
         }
-
     };
 
 
     this.toggle = function () {
         self.log("toggle");
-        var client = workspace.activeClient;
+        var kwinClient = workspace.activeClient;
+        var client = self.clients[kwinClient.windowId];
 
-        try {
-            self.remove(client);
-        } catch (error) {
+        if (!self.remove(client)) {
             self.add(client);
         }
 
@@ -204,16 +165,22 @@ function Activity() {
 
 
         workspace.desktopPresenceChanged.connect(function (client, desktop) {
-            self.relocate(client);
+            self.relocate(self.clients[client.windowId]);
         });
 
         workspace.currentDesktopChanged.connect(function (client, desktop) {
             self.tile();
         });
 
-        workspace.activitiesChanged.connect(self.remove);
-        workspace.clientMinimized.connect(self.remove);
-        workspace.clientRemoved.connect(self.remove);
+        workspace.activitiesChanged.connect(function (client) {
+            self.remove(self.clients[client.windowId]);
+        });
+        workspace.clientMinimized.connect(function (client) {
+            self.remove(self.clients[client.windowId]);
+        });
+        workspace.clientRemoved.connect(function (client) {
+            self.remove(self.clients[client.windowId]);
+        });
 
         workspace.clientMaximizeSet.connect(function (client, h, v) {
             // TODO
@@ -241,6 +208,19 @@ function Activity() {
         for (var i = 0; i < clients.length; i++) {
             self.add(clients[i]);
         }
+    };
+
+    // Checks whether a client is eligible for tiling or not
+    this.isEligible = function (client) {
+        self.log("eligible");
+        var clientEligible = client.isEligible();
+        return clientEligible && !self.isIgnored(client) &&
+            !client.screen.isFull();
+    };
+
+    this.isIgnored = function (client) {
+        return self.ignored.indexOf(client.kwinClient.resourceClass.toString()) > -1 ||
+            self.ignored.indexOf(client.kwinClient.resourceName.toString()) > -1
     };
 
 
