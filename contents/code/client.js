@@ -22,7 +22,8 @@ function Client(kwinClient, desktop, screen) {
             client.dndIcon || client.dock || client.dropdownMenu ||
             client.menu || client.notification || client.popupMenu ||
             client.specialWindow || client.splash || client.toolbar ||
-            client.tooltip || client.utility || client.transient);
+            client.tooltip || client.utility || client.transient ||
+            self.screen === null || self.desktop === null || self.screen.isFull());
     };
 
 }

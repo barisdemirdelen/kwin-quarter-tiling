@@ -215,8 +215,7 @@ function Activity() {
     this.isEligible = function (client) {
         self.log("eligible");
         var clientEligible = client.isEligible();
-        return clientEligible && !self.isIgnored(client) &&
-            !client.screen.isFull();
+        return clientEligible && !self.isIgnored(client);
     };
 
     this.isIgnored = function (client) {
