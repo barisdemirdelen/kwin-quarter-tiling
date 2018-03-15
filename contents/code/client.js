@@ -4,17 +4,16 @@ function Client(kwinClient, desktop, screen) {
 
     this.kwinClient = kwinClient;
     this.id = kwinClient.windowId;
-    this.geometry = new Rect(kwinClient.geometry);
+    this.geometry = kwinClient.geometry;
     this.desktop = desktop;
     this.screen = screen;
     this.screenIndex = -1;
 
     this.setGeometry = function (geometry) {
-        self.kwinClient.geometry.x = Math.round(geometry.x);
-        self.kwinClient.geometry.y = Math.round(geometry.y);
-        self.kwinClient.geometry.width = Math.round(geometry.width);
-        self.kwinClient.geometry.height = Math.round(geometry.height);
-        self.geometry = new Rect(self.kwinClient.geometry);
+        self.geometry.x = Math.round(geometry.x);
+        self.geometry.y = Math.round(geometry.y);
+        self.geometry.width = Math.round(geometry.width);
+        self.geometry.height = Math.round(geometry.height);
     };
 
     this.isEligible = function () {

@@ -51,7 +51,7 @@ function Activity() {
         if (!self.isEligible(client)) {
             return false;
         }
-        self.original[client.id] = client.geometry.getCopy();
+        self.original[client.id] = getRectCopy(client.geometry);
 
         client.kwinClient.clientFinishUserMovedResized.connect(function () {
             self.move(client);
@@ -96,26 +96,12 @@ function Activity() {
         client.setGeometry(Qt.rect(client.geometry.x, client.geometry.y, original.rect.width, original.rect.height));
     };
 
-    this.resize = function (client) {
-        self.log("resize");
-
-        if (client.geometry.width === p.screen.layout.tiles[p.index].width &&
-            client.geometry.height === p.screen.layout.tiles[p.index].height) {
-            return;
-        }
-        else {
-            p.screen.layout.move(client, p.index);
-        }
-
-        p.screen.tile(p.screen.clients.length);
-    };
-
     this.move = function (client) {
         self.log("move");
 
         var screen = client.screen;
-        if (client.kwinClient.geometry.width === Math.round(screen.layout.tiles[client.screenIndex].width) &&
-            client.kwinClient.geometry.height === Math.round(screen.layout.tiles[client.screenIndex].height)) {
+        if (client.geometry.width === Math.round(screen.layout.tiles[client.screenIndex].width) &&
+            client.geometry.height === Math.round(screen.layout.tiles[client.screenIndex].height)) {
             if (client.screen.id !== client.kwinClient.screen || client.desktop.id !== client.kwinClient.desktop) {
                 self.relocate(client)
             } else {

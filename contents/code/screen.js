@@ -25,12 +25,12 @@ function Screen(id) {
             if (i !== client.screenIndex) {
                 geometry = this.clients[i].geometry;
             } else {
-                geometry = new Rect(this.layout.tiles[client.screenIndex]);
+                geometry = this.layout.tiles[client.screenIndex];
             }
-            centers[i] = geometry.getCenter();
+            centers[i] = getCenter(geometry);
         }
 
-        var center = client.geometry.getCenter();
+        var center = getCenter(client.geometry);
         var closestIndex = self.getLeastDistanceIndex(center, centers);
 
         if (client.screenIndex !== closestIndex) {
