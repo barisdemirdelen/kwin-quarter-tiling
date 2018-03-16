@@ -1,3 +1,4 @@
+/** @constructor */
 function Desktop(id) {
 
     var self = this;

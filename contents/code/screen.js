@@ -1,3 +1,4 @@
+/** @constructor */
 function Screen(id) {
 
     var self = this;

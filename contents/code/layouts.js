@@ -1,3 +1,4 @@
+/** @constructor */
 function Layout(id, geometry) {
     var layouts = ["2x2", "1x2", "1x3"];
     switch (layouts[id]) {
@@ -10,7 +11,7 @@ function Layout(id, geometry) {
     }
 }
 
-
+/** @constructor */
 function QuarterLayout(geometry, max) {
     this.geometry = geometry;
     this.max = max;
@@ -75,6 +76,7 @@ function QuarterLayout(geometry, max) {
     };
 }
 
+/** @constructor */
 function MasterLayout(geometry, max) {
     this.geometry = geometry;
     this.max = max;

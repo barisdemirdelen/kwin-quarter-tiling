@@ -5,6 +5,7 @@ Qt.include("layouts.js");
 Qt.include("screen.js");
 Qt.include("desktop.js");
 
+/** @constructor */
 function Activity() {
 
     // TL;DR: this.desktops[i].screens[j].clients[l].geometry = this.desktops[i].screens[j].layout.tiles[l]
