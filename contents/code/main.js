@@ -53,16 +53,28 @@ function Activity() {
         }
         self.original[client.id] = getRectCopy(client.geometry);
 
-        client.kwinClient.clientFinishUserMovedResized.connect(function () {
-            self.move(client);
-        });
-        client.kwinClient.screenChanged.connect(function () {
+        client.onScreenChanged = function () {
             self.relocate(client);
-        });
+        };
+
+        client.onFinishUserMovedResized = function () {
+            self.move(client);
+        };
+
+        client.onFinishUserMovedResized = function () {
+            self.move(client);
+        };
+
+
+        client.kwinClient.screenChanged.connect(client.onScreenChanged);
+        client.kwinClient.clientFinishUserMovedResized.connect(client.onFinishUserMovedResized);
+
         if (isConfigSet("live")) {
-            client.kwinClient.clientStepUserMovedResized.connect(function () {
+            client.onStepUserMovedResized = function () {
                 self.move(client);
-            });
+            };
+
+            client.kwinClient.clientStepUserMovedResized.connect(client.onStepUserMovedResized)
         }
 
         client.screen.add(client);
@@ -73,16 +85,10 @@ function Activity() {
         self.log("remove");
         self.reset(client);
 
-        client.kwinClient.clientFinishUserMovedResized.disconnect(function () {
-            self.move(client);
-        });
-        client.kwinClient.screenChanged.disconnect(function () {
-            self.relocate(client);
-        });
+        client.kwinClient.screenChanged.disconnect(client.onScreenChanged);
+        client.kwinClient.clientFinishUserMovedResized.disconnect(client.onFinishUserMovedResized);
         if (isConfigSet("live")) {
-            client.kwinClient.clientStepUserMovedResized.disconnect(function () {
-                self.move(client);
-            });
+            client.kwinClient.clientStepUserMovedResized.disconnect(client.onStepUserMovedResized);
         }
 
         client.screen.remove(client);
@@ -93,7 +99,7 @@ function Activity() {
     this.reset = function (client) {
         self.log("reset");
         var original = self.original[client.id];
-        client.setGeometry(Qt.rect(client.geometry.x, client.geometry.y, original.rect.width, original.rect.height));
+        client.setGeometry(Qt.rect(client.geometry.x, client.geometry.y, original.width, original.height));
     };
 
     this.move = function (client) {
@@ -126,6 +132,7 @@ function Activity() {
         client.screen = self.desktops[client.kwinClient.desktop].screens[client.kwinClient.screen];
 
         if (self.isEligible(client)) {
+            self.log("try add");
             client.screen.add(client);
         } else {
             self.remove(client);
@@ -159,15 +166,10 @@ function Activity() {
             self.tile();
         });
 
-        workspace.activitiesChanged.connect(function (client) {
-            self.remove(self.clients[client.windowId]);
-        });
-        workspace.clientMinimized.connect(function (client) {
-            self.remove(self.clients[client.windowId]);
-        });
-        workspace.clientRemoved.connect(function (client) {
-            self.remove(self.clients[client.windowId]);
-        });
+        workspace.activitiesChanged.connect(self.onRemove);
+        workspace.clientMinimized.connect(self.onRemove);
+        workspace.clientRemoved.connect(self.onRemove);
+        workspace.clientUnminimized.connect(self.add);
 
         workspace.clientMaximizeSet.connect(function (client, h, v) {
             // TODO
@@ -207,6 +209,10 @@ function Activity() {
     this.isIgnored = function (client) {
         return self.ignored.indexOf(client.kwinClient.resourceClass.toString()) > -1 ||
             self.ignored.indexOf(client.kwinClient.resourceName.toString()) > -1
+    };
+
+    this.onRemove = function (kwinClient) {
+        self.remove(self.clients[kwinClient.windowId])
     };
 
 
