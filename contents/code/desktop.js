@@ -16,6 +16,9 @@ function Desktop(id) {
         this.screens[i] = new Screen(i);
     }
 
+    /**
+     * Tiles all the screens the desktop contains.
+     * */
     this.tile = function () {
         for (var i = 0; i < this.screens.length; i++) {
             this.screens[i].tile();

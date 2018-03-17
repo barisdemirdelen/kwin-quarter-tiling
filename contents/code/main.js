@@ -48,10 +48,12 @@ function Activity() {
         }
         var client = new Client(kwinClient, self.desktops[kwinClient.desktop],
             self.desktops[kwinClient.desktop].screens[kwinClient.screen]);
-        self.clients[client.id] = client;
         if (!self.isEligible(client)) {
+            self.log("not eligible");
             return false;
         }
+
+        self.clients[client.id] = client;
         self.original[client.id] = getRectCopy(client.geometry);
 
         client.onScreenChanged = function () {
@@ -66,24 +68,25 @@ function Activity() {
             self.move(client);
         };
 
+        client.onStepUserMovedResized = function () {
+            self.move(client);
+        };
+
 
         client.kwinClient.screenChanged.connect(client.onScreenChanged);
         client.kwinClient.clientFinishUserMovedResized.connect(client.onFinishUserMovedResized);
-
         if (isConfigSet("live")) {
-            client.onStepUserMovedResized = function () {
-                self.move(client);
-            };
-
             client.kwinClient.clientStepUserMovedResized.connect(client.onStepUserMovedResized)
         }
 
         client.screen.add(client);
+        client.added = true;
         return true;
     };
 
     this.remove = function (client) {
         self.log("remove");
+
         self.reset(client);
 
         client.kwinClient.screenChanged.disconnect(client.onScreenChanged);
@@ -94,6 +97,8 @@ function Activity() {
 
         client.screen.remove(client);
         client.screen = null;
+        client.desktop = null;
+        client.added = false;
         return true
     };
 
@@ -126,6 +131,10 @@ function Activity() {
     this.relocate = function (client) {
         self.log("relocate");
 
+        if (client == null || !client.added) {
+            return
+        }
+
 
         client.screen.remove(client);
 
@@ -145,9 +154,10 @@ function Activity() {
         self.log("toggle");
         var kwinClient = workspace.activeClient;
         var client = self.clients[kwinClient.windowId];
-
-        if (!self.remove(client)) {
-            self.add(client);
+        if (client.added) {
+            self.remove(client)
+        } else {
+            self.add(kwinClient);
         }
 
     };
@@ -159,14 +169,11 @@ function Activity() {
         }
 
 
-        workspace.desktopPresenceChanged.connect(function (client, desktop) {
-            self.relocate(self.clients[client.windowId]);
-        });
-
         workspace.currentDesktopChanged.connect(function (client, desktop) {
             self.tile();
         });
 
+        workspace.desktopPresenceChanged.connect(self.onRelocate);
         workspace.activitiesChanged.connect(self.onRemove);
         workspace.clientMinimized.connect(self.onRemove);
         workspace.clientRemoved.connect(self.onRemove);
@@ -213,9 +220,20 @@ function Activity() {
     };
 
     this.onRemove = function (kwinClient) {
-        self.remove(self.clients[kwinClient.windowId])
+        var client = self.clients[kwinClient.windowId];
+        if (client == null || !client.added) {
+            return
+        }
+        self.remove(client)
     };
 
+    this.onRelocate = function (kwinClient) {
+        var client = self.clients[kwinClient.windowId];
+        if (client == null || !client.added) {
+            return
+        }
+        self.relocate(client)
+    };
 
     this.init();
 }

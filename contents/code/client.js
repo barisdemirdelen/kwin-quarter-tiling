@@ -3,7 +3,7 @@
  * @constructor
  * @param {KWin.Client} kwinClient - KWin client.
  * @param {Desktop} desktop - Desktop the client is currently in.
- * @param {Screen} desktop - Screen the client is currently in.
+ * @param {Screen} screen - Screen the client is currently in.
  * */
 function Client(kwinClient, desktop, screen) {
 
@@ -21,6 +21,8 @@ function Client(kwinClient, desktop, screen) {
     this.screen = screen;
     /** @member {int} - Current index of the client in the screen. */
     this.screenIndex = -1;
+    /** @member {boolean} - Client added to tiling. */
+    this.added = false;
 
     /**
      * Sets the geometry of the client to given geometry,
