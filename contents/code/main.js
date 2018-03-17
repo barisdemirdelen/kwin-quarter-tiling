@@ -5,10 +5,13 @@ Qt.include("layouts.js");
 Qt.include("screen.js");
 Qt.include("desktop.js");
 
-/** @constructor */
+/**
+ * Main Activity class for the quarter tiling script.
+ * Manages signals from KWin and passes them to desktops/screens/clients that are in need of managing.
+ * TL;DR: this.desktops[i].screens[j].clients[l].geometry = this.desktops[i].screens[j].layout.tiles[l]
+ * @constructor
+ * */
 function Activity() {
-
-    // TL;DR: this.desktops[i].screens[j].clients[l].geometry = this.desktops[i].screens[j].layout.tiles[l]
 
     // A hack to access this from the inner functions
     var self = this;
@@ -42,14 +45,14 @@ function Activity() {
     };
 
     this.add = function (kwinClient) {
-        self.log("add");
+        self.log("add " + kwinClient.windowId);
         if (kwinClient.screen < 0 || kwinClient.desktop < 0) {
             return false;
         }
         var client = new Client(kwinClient, self.desktops[kwinClient.desktop],
             self.desktops[kwinClient.desktop].screens[kwinClient.screen]);
         if (!self.isEligible(client)) {
-            self.log("not eligible");
+            self.log(kwinClient.windowId + " not eligible");
             return false;
         }
 
@@ -85,7 +88,7 @@ function Activity() {
     };
 
     this.remove = function (client) {
-        self.log("remove");
+        self.log("remove " + client.id);
 
         self.reset(client);
 
@@ -103,25 +106,25 @@ function Activity() {
     };
 
     this.reset = function (client) {
-        self.log("reset");
+        self.log("reset " + client.id);
         var original = self.original[client.id];
         client.setGeometry(Qt.rect(client.geometry.x, client.geometry.y, original.width, original.height));
     };
 
     this.move = function (client) {
-        self.log("move");
+        self.log("move " + client.id);
 
         var screen = client.screen;
         if (client.geometry.width === Math.round(screen.layout.tiles[client.screenIndex].width) &&
             client.geometry.height === Math.round(screen.layout.tiles[client.screenIndex].height)) {
-            if (client.screen.id !== client.kwinClient.screen || client.desktop.id !== client.kwinClient.desktop) {
+            if (client.needsRelocating()) {
                 self.relocate(client)
             } else {
-                self.log("screen move");
+                self.log("screen move " + client.id);
                 screen.move(client)
             }
         } else {
-            self.log("layout move");
+            self.log("layout move " + client.id);
             screen.layout.move(client);
         }
 
@@ -129,12 +132,7 @@ function Activity() {
     };
 
     this.relocate = function (client) {
-        self.log("relocate");
-
-        if (client == null || !client.added) {
-            return
-        }
-
+        self.log("relocate " + client.id);
 
         client.screen.remove(client);
 
@@ -142,7 +140,6 @@ function Activity() {
         client.screen = self.desktops[client.kwinClient.desktop].screens[client.kwinClient.screen];
 
         if (self.isEligible(client)) {
-            self.log("try add");
             client.screen.add(client);
         } else {
             self.remove(client);
@@ -151,10 +148,10 @@ function Activity() {
 
 
     this.toggle = function () {
-        self.log("toggle");
         var kwinClient = workspace.activeClient;
+        self.log("toggle " + kwinClient.windowId);
         var client = self.clients[kwinClient.windowId];
-        if (client.added) {
+        if (client != null && client.added) {
             self.remove(client)
         } else {
             self.add(kwinClient);
@@ -195,7 +192,7 @@ function Activity() {
 
     this.log = function (str) {
         if (self.debug) {
-            print("Activity: " + str);
+            print("KWinQuarterTiling.Activity - " + str);
         }
     };
 
@@ -209,7 +206,7 @@ function Activity() {
 
     // Checks whether a client is eligible for tiling or not
     this.isEligible = function (client) {
-        self.log("eligible");
+        self.log("isEligible " + client.id);
         var clientEligible = client.isEligible();
         return clientEligible && !self.isIgnored(client);
     };

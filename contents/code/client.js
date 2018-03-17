@@ -49,4 +49,15 @@ function Client(kwinClient, desktop, screen) {
             self.screen === null || self.desktop === null || self.screen.isFull());
     };
 
+    /**
+     * Checks if the client needs relocating.
+     * Client needs relocating if either the screen or the desktop id's don't match the
+     * current screen and desktop the client registered in.
+     * @return {boolean}
+     */
+    this.needsRelocating = function () {
+        return self.screen.id !== self.kwinClient.screen || self.desktop.id !== self.kwinClient.desktop
+
+    }
+
 }
