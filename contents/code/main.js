@@ -16,18 +16,21 @@ function Activity() {
     // A hack to access this from the inner functions
     var self = this;
 
-    this.ignored = ["albert", "kazam", "krunner", "ksmserver", "lattedock",
-        "pinentry", "Plasma", "plasma", "plasma-desktop", "plasmashell",
-        "plugin-container", "simplescreenrecorder", "yakuake"];
-    this.id = workspace.currentActivity.toString();
+    this.workspace = workspace;
+    this.options = options;
+    this.id = this.workspace.currentActivity.toString();
     this.original = [];
     this.desktops = [];
     this.clients = {};
     this.debug = true;
 
+    this.ignored = ["albert", "kazam", "krunner", "ksmserver", "lattedock",
+        "pinentry", "Plasma", "plasma", "plasma-desktop", "plasmashell",
+        "plugin-container", "simplescreenrecorder", "yakuake"];
+
     this.init = function () {
         self.log("init");
-        for (var i = 0; i < workspace.desktops; i++) {
+        for (var i = 0; i < self.workspace.desktops; i++) {
             self.desktops[i] = new Desktop(i);
         }
 
@@ -148,7 +151,7 @@ function Activity() {
 
 
     this.toggle = function () {
-        var kwinClient = workspace.activeClient;
+        var kwinClient = self.workspace.activeClient;
         self.log("toggle " + kwinClient.windowId);
         var client = self.clients[kwinClient.windowId];
         if (client != null && client.added) {
@@ -162,25 +165,25 @@ function Activity() {
     this.connectEvents = function () {
 
         if (isConfigSet("auto")) {
-            workspace.clientAdded.connect(self.add);
+            self.workspace.clientAdded.connect(self.add);
         }
 
 
-        workspace.currentDesktopChanged.connect(function (client, desktop) {
+        self.workspace.currentDesktopChanged.connect(function (client, desktop) {
             self.tile();
         });
 
-        workspace.desktopPresenceChanged.connect(self.onRelocate);
-        workspace.activitiesChanged.connect(self.onRemove);
-        workspace.clientMinimized.connect(self.onRemove);
-        workspace.clientRemoved.connect(self.onRemove);
-        workspace.clientUnminimized.connect(self.add);
+        self.workspace.desktopPresenceChanged.connect(self.onRelocate);
+        self.workspace.activitiesChanged.connect(self.onRemove);
+        self.workspace.clientMinimized.connect(self.onRemove);
+        self.workspace.clientRemoved.connect(self.onRemove);
+        self.workspace.clientUnminimized.connect(self.add);
 
-        workspace.clientMaximizeSet.connect(function (client, h, v) {
+        self.workspace.clientMaximizeSet.connect(function (client, h, v) {
             // TODO
         });
 
-        workspace.numberDesktopsChanged(function (oldDesktops) {
+        self.workspace.numberDesktopsChanged(function (oldDesktops) {
             // TODO
         });
 
@@ -198,7 +201,7 @@ function Activity() {
 
     this.addInitialClients = function () {
         self.log("addInitialClients");
-        var clients = workspace.clientList();
+        var clients = self.workspace.clientList();
         for (var i = 0; i < clients.length; i++) {
             self.add(clients[i]);
         }
@@ -230,6 +233,21 @@ function Activity() {
             return
         }
         self.relocate(client)
+    };
+
+
+    /**
+     * Ticks at every interval defined in main.qml to check if stuff changed.
+     * Useful for when the Kwin signals aren't good enough or working.
+     * Currently is only used when the screen geometry is updated.
+     */
+    this.tick = function () {
+        for (var i = 0; i < self.desktops.length; i++) {
+            var currentDesktop = self.desktops[i];
+            for (var j = 0; j < currentDesktop.screens.length; j++) {
+                currentDesktop.screens[j].tick();
+            }
+        }
     };
 
     this.init();

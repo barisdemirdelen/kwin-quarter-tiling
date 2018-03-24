@@ -8,4 +8,10 @@ Item {
     Component.onCompleted: {
         main = new Tiling.Activity();
     }
+    Timer {
+        running: true
+        repeat: true
+        interval: 5000
+        onTriggered: main.tick();
+    }
 }

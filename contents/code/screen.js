@@ -4,8 +4,8 @@ function Screen(id) {
     var self = this;
 
     this.id = id;
-
-    this.geometry = workspace.clientArea(0, id, 0);
+    this.workspace = workspace;
+    this.geometry = this.workspace.clientArea(0, id, 0);
 
     this.clients = [];
     this.layout = new Layout(KWin.readConfig("layout", 0), this.geometry);
@@ -83,6 +83,16 @@ function Screen(id) {
     this.isFull = function () {
         return self.clients.length > self.layout.max - 1
     };
+
+    this.tick = function () {
+        var newGeometry = self.workspace.clientArea(0, self.id, 0);
+        if (self.geometry !== newGeometry) {
+            print("Screen geometry changed " + self.id);
+            self.geometry = newGeometry;
+            self.layout.geometry = newGeometry;
+            self.layout.tile();
+        }
+    }
 
 
 }
