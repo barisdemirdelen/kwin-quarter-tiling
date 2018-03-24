@@ -127,8 +127,8 @@ function Activity() {
                 screen.move(client)
             }
         } else {
-            self.log("layout move " + client.id);
-            screen.layout.move(client);
+            self.log("screen resize " + client.id);
+            screen.resize(client);
         }
 
         screen.tile();

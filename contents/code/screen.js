@@ -14,6 +14,7 @@ function Screen(id) {
     this.tile = function () {
         this.layout.tile(this.clients.length);
         for (var i = 0; i < this.clients.length; i++) {
+            this.clients[i].screenIndex = i;
             this.clients[i].setGeometry(this.layout.tiles[i]);
         }
     };
@@ -40,6 +41,9 @@ function Screen(id) {
 
     };
 
+    this.resize = function (client) {
+        this.layout.resize(client.screenIndex, client.geometry)
+    };
 
     this.add = function (client) {
         self.clients.push(client);
